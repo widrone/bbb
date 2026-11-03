@@ -153,6 +153,23 @@ kbd{font-family:var(--f-mono);font-size:11.5px;padding:1px 6px;border:1px solid 
 .bar i{display:block;height:100%;width:0;background:var(--amber);transition:width .12s}
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;background:var(--chalk);color:var(--concrete);padding:10px 16px;border-radius:4px;font-weight:600;max-width:calc(100% - 32px);text-align:center}
 
+/* calibration */
+.calib-entry{margin-top:28px;padding-top:18px;border-top:1px solid var(--seam);display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.calib-entry .fine{flex:1 1 240px}
+.calib{display:grid;gap:18px;max-width:680px}
+.calib h2{margin:0;font-family:var(--f-display);font-weight:800;font-size:clamp(40px,7vw,64px);line-height:.9;text-transform:uppercase}
+.calib-help{margin:0;max-width:60ch}
+.calib-pad{all:unset;box-sizing:border-box;justify-self:center;width:min(240px,70vw);aspect-ratio:1;border-radius:50%;border:2px solid var(--amber);
+  display:grid;place-items:center;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none;
+  font-family:var(--f-display);font-weight:800;font-size:34px;letter-spacing:.04em;text-transform:uppercase;color:var(--chalk);
+  background-color:rgba(242,169,59,.06);transition:background-color .14s ease-out,transform .08s ease-out}
+.calib-pad:focus-visible{outline:2px solid var(--chalk);outline-offset:6px}
+.calib-pad.beat{background-color:rgba(242,169,59,.42);transition:none}
+.calib-pad.tap{transform:scale(.95)}
+#calib-live{margin:0;min-height:1.5em;justify-self:center;color:var(--dust);text-align:center}
+.calib-result{display:grid;gap:12px;padding:16px 18px;background:var(--slab);border:1px solid var(--seam);border-radius:6px}
+.calib-result p{margin:0}
+@media (prefers-reduced-motion:reduce){.calib-pad,.calib-pad.tap{transition:none;transform:none}}
 /* results */
 .res{display:grid;gap:26px}
 .res-main{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 40px}
@@ -183,7 +200,7 @@ kbd{font-family:var(--f-mono);font-size:11.5px;padding:1px 6px;border:1px solid 
       <img class="plate" src="art/cover-plate.webp" alt="" aria-hidden="true">
       <div class="brand">
         <h1>Beat<span>Bom</span>Basement</h1>
-        <p class="tag">Rhythm prototype, build 0.5. Music and artwork by <em>Snasen</em>.</p>
+        <p class="tag">Rhythm prototype, build 0.6. Music and artwork by <em>Snasen</em>.</p>
       </div>
       <div class="io mono" aria-live="polite">
         <span>Input: <b id="io-last">keyboard</b></span>
@@ -195,6 +212,10 @@ kbd{font-family:var(--f-mono);font-size:11.5px;padding:1px 6px;border:1px solid 
       <section class="log" aria-label="Setlist">
         <div class="log-head mono" aria-hidden="true"><span>No.</span><span>Track</span><span>Audio</span><span>Length</span><span>Best</span></div>
         <ol id="setlist"></ol>
+        <div class="calib-entry">
+          <button class="btn" id="btn-calib" type="button">Calibrate audio offset</button>
+          <p class="fine">Tap along to a click to set the offset for your speakers or headphones. Y on a controller.</p>
+        </div>
       </section>
 
       <aside class="strip" id="strip" aria-label="Selected track">
@@ -300,6 +321,24 @@ kbd{font-family:var(--f-mono);font-size:11.5px;padding:1px 6px;border:1px solid 
       <button class="btn primary" id="btn-retry" type="button">Retry</button>
       <button class="btn" id="btn-back" type="button">Setlist</button>
     </div>
+  </div>
+</div>
+
+<div id="scr-calib" class="screen" hidden>
+  <div class="wrap calib">
+    <div>
+      <p class="eyebrow mono">Audio offset</p>
+      <h2>Calibrate</h2>
+    </div>
+    <p class="calib-help">Use the speakers or headphones you play with. You'll hear four count-in clicks, then twenty more: tap on each one with any key, the circle, or a controller button.</p>
+    <button class="calib-pad" id="calib-pad" type="button"><span id="calib-count">Start</span></button>
+    <p class="mono" id="calib-live" aria-live="polite"></p>
+    <div class="calib-result" id="calib-result" hidden>
+      <p id="calib-text"></p>
+      <div class="actions"><button class="btn primary" id="calib-apply" type="button">Use</button><button class="btn" id="calib-retry" type="button">Run again</button></div>
+    </div>
+    <div class="actions"><button class="btn" id="calib-back" type="button">Back to tracks</button></div>
+    <p class="fine">Current offset: <b id="calib-cur">0 ms</b>. Bluetooth headphones often need +150 ms or more; wired headphones and built-in speakers usually sit within ±40 ms.</p>
   </div>
 </div>
 
@@ -610,6 +649,24 @@ function printLag(ref, live, pad){
   const frac = (y0 != null && y2 != null && (y0 - 2*y1 + y2) < 0) ? 0.5*(y0 - y2)/(y0 - 2*y1 + y2) : 0;
   return { lag:(bl + frac)*PRINT_BIN, corr:best };
 }
+
+// Tap-along calibration: match each tap to its nearest click (within 40% of a beat), drop outliers beyond
+// 3 robust SDs of the median, average the rest. Positive = taps land after the click, which is the offset to use.
+function calibEstimate(taps, clicks, period){
+  const errs = [];
+  for (const t of taps){
+    let best = null;
+    for (const c of clicks){ const d = t - c; if (Math.abs(d) <= period*0.4 && (best == null || Math.abs(d) < Math.abs(best))) best = d; }
+    if (best != null) errs.push(best);
+  }
+  if (errs.length < 8) return { ok:false, n:errs.length };
+  const med = a => { const q = a.slice().sort((x,y) => x - y), m = q.length >> 1; return q.length % 2 ? q[m] : (q[m-1] + q[m])/2; };
+  const m = med(errs), mad = med(errs.map(e => Math.abs(e - m))) || 0.004;
+  const keep = errs.filter(e => Math.abs(e - m) <= 3*1.4826*mad + 0.004);
+  const mean = keep.reduce((a,b) => a + b, 0)/keep.length;
+  const sd = Math.sqrt(keep.reduce((a,b) => a + (b - mean)*(b - mean), 0)/keep.length);
+  return { ok:true, n:keep.length, total:errs.length, mean, sd, suggest:(Math.max(-200, Math.min(200, Math.round(mean*1000/5)*5)) || 0) };
+}
 /*CORE-END*/
 
 // ---------- app ----------
@@ -785,7 +842,7 @@ function busy(txt, p, art){
 }
 function show(name){
   screen = name;
-  ['title','play','results'].forEach(n => $('#scr-' + n).hidden = n !== name);
+  ['title','play','results','calib'].forEach(n => $('#scr-' + n).hidden = n !== name);
 }
 
 async function loadFile(file){
@@ -968,6 +1025,15 @@ function stopGame(){
   try { G.src.disconnect(); G.an.disconnect(); } catch(e){}
   G = null;
   if (actx && actx.state === 'suspended') actx.resume();
+}
+// what the listener hears right now, on the audio clock (accounts for output latency where the browser reports it)
+function outputTime(perfMs){
+  const ac = actx, pm = perfMs == null ? performance.now() : perfMs; let ct = null;
+  if (ac.getOutputTimestamp){
+    const ts = ac.getOutputTimestamp();
+    if (ts && ts.contextTime > 0 && ts.performanceTime > 0) ct = ts.contextTime + Math.max(-0.1, Math.min(0.1, (pm - ts.performanceTime)/1000));
+  }
+  return ct == null ? ac.currentTime - (ac.outputLatency || ac.baseLatency || 0) : ct;
 }
 function songNow(perfMs){
   const ac = actx, pm = perfMs == null ? performance.now() : perfMs; let ct = null;
@@ -1374,6 +1440,89 @@ function drawHist(errs){
   x.textAlign = 'right'; x.fillText('+135 ms', W, base + 3);
 }
 
+// ---------- calibration ----------
+const CAL = { bpm:100, lead:4, beats:20, off:0.25 };
+let C = null;
+const fmtOff = v => (v > 0 ? '+' : '') + v + ' ms';
+function calibOpen(){
+  closeSheet(); stopGame(); calibReset(); show('calib');
+  $('#calib-cur').textContent = fmtOff(settings.offset);
+  setTimeout(() => { try { $('#calib-pad').focus({ preventScroll:true }); } catch(e){} }, 50);
+  scrollTo(0, 0);
+}
+function calibReset(){
+  if (C && C.src){ try { C.src.stop(); } catch(e){} }
+  C = null;
+  $('#calib-count').textContent = 'Start'; $('#calib-live').textContent = ''; $('#calib-result').hidden = true;
+}
+function calibBack(){ calibReset(); show('title'); try { $('#btn-calib').focus({ preventScroll:true }); } catch(e){} }
+function calibStart(){
+  calibReset();
+  const ac = ctx(), period = 60/CAL.bpm, n = CAL.lead + CAL.beats, sr = ac.sampleRate;
+  const buf = ac.createBuffer(1, Math.ceil((CAL.off + n*period + 0.8)*sr), sr), d = buf.getChannelData(0), clicks = [];
+  for (let k = 0; k < n; k++){
+    const s0 = Math.round((CAL.off + k*period)*sr), f = k % 4 === 0 ? 1760 : 1320;   // accent every fourth click
+    for (let i = 0; i < 0.03*sr; i++){ const tt = i/sr; d[s0 + i] += Math.sin(2*Math.PI*f*tt)*Math.exp(-tt/0.006)*0.7; }
+    clicks.push(CAL.off + k*period);
+  }
+  const src = ac.createBufferSource(); src.buffer = buf; src.connect(ac.destination);
+  const startAt = ac.currentTime + 0.35; src.start(startAt);
+  C = { src, startAt, clicks, period, taps:[], shown:-1, done:false };
+  $('#calib-count').textContent = String(CAL.lead);
+}
+const calibNow = perfMs => outputTime(perfMs) - C.startAt;
+function calibTap(perfMs){
+  if (!C || C.done) return;
+  const t = calibNow(perfMs); C.taps.push(t);
+  const pad = $('#calib-pad'); pad.classList.add('tap'); setTimeout(() => pad.classList.remove('tap'), 90);
+  let best = null; for (const c of C.clicks.slice(CAL.lead)){ const e = t - c; if (best == null || Math.abs(e) < Math.abs(best)) best = e; }
+  if (best != null && Math.abs(best) < C.period*0.4) $('#calib-live').textContent = (best >= 0 ? '+' : '−') + Math.round(Math.abs(best)*1000) + ' ms';
+}
+function calibStep(){
+  if (!C || C.done) return;
+  if (actx.state !== 'running'){ $('#calib-live').textContent = 'Click or press any key to turn on sound'; return; }
+  const t = calibNow(), k = C.clicks.filter(c => c <= t).length;   // clicks heard so far
+  if (k !== C.shown && k > 0){
+    C.shown = k;
+    const pad = $('#calib-pad'); pad.classList.add('beat'); setTimeout(() => pad.classList.remove('beat'), 110);
+    $('#calib-count').textContent = k < CAL.lead ? String(CAL.lead - k) : (k - CAL.lead + 1 <= CAL.beats ? (k - CAL.lead + 1) + ' / ' + CAL.beats : 'Done');
+  }
+  if (t > C.clicks[C.clicks.length - 1] + 0.5) calibFinish();
+}
+function calibFinish(){
+  C.done = true;
+  const r = calibEstimate(C.taps, C.clicks.slice(CAL.lead), C.period);
+  C.result = r;
+  $('#calib-count').textContent = 'Again';
+  const ap = $('#calib-apply');
+  if (!r.ok){
+    $('#calib-text').textContent = `Only ${r.n} of your taps landed near a click. Run it again and tap on every click after the count-in.`;
+    ap.hidden = true;
+  } else {
+    const ms = Math.round(r.mean*1000), sp = Math.round(r.sd*1000);
+    let txt = Math.abs(ms) < 5 ? `Your taps land right on the click (average ${ms >= 0 ? '+' : ''}${ms} ms, spread ±${sp} ms, ${r.n} taps used).`
+      : `Your taps land ${Math.abs(ms)} ms ${ms > 0 ? 'after' : 'before'} the click on average (spread ±${sp} ms, ${r.n} taps used).`;
+    if (r.sd > 0.06) txt += ' The taps were uneven, so treat this as a rough reading and run it again if you can.';
+    if (r.suggest === settings.offset){ txt += ` Your current offset, ${fmtOff(settings.offset)}, already matches.`; ap.hidden = true; }
+    else { ap.hidden = false; ap.textContent = 'Use ' + fmtOff(r.suggest); }
+    $('#calib-text').textContent = txt;
+  }
+  $('#calib-result').hidden = false;
+}
+function calibApply(){
+  if (!C || !C.result || !C.result.ok) return;
+  const v = C.result.suggest; settings.offset = v; saveSettings();
+  $('#offset').value = v; $('#offset').dispatchEvent(new Event('input'));
+  $('#calib-cur').textContent = fmtOff(v); $('#calib-apply').hidden = true;
+  toast('Audio offset set to ' + fmtOff(v));
+}
+$('#btn-calib').addEventListener('click', calibOpen);
+$('#calib-back').addEventListener('click', calibBack);
+$('#calib-retry').addEventListener('click', calibStart);
+$('#calib-apply').addEventListener('click', calibApply);
+$('#calib-pad').addEventListener('pointerdown', e => { e.preventDefault(); if (C && !C.done) calibTap(evTime(e)); else calibStart(); });
+$('#calib-pad').addEventListener('click', e => { if (e.detail === 0 && (!C || C.done)) calibStart(); });   // keyboard / assistive activation
+
 // ---------- input ----------
 const KEYMAP = { KeyD:0, KeyF:1, KeyJ:2, KeyK:3, ArrowLeft:0, ArrowDown:1, ArrowUp:2, ArrowRight:3 };
 const STEER_L = ['KeyA','ArrowLeft'], STEER_R = ['KeyD','ArrowRight'], PULSE = ['Space','KeyJ','KeyK','KeyW','ArrowUp'];
@@ -1382,6 +1531,14 @@ function setInput(kind){
   lastInput = kind; $('#io-last').textContent = kind;
 }
 window.addEventListener('keydown', e => {
+  if (screen === 'calib'){
+    if (e.code === 'Escape'){ e.preventDefault(); calibBack(); return; }
+    if (e.repeat || e.metaKey || e.ctrlKey || e.altKey || e.code === 'Tab' || e.key === 'Shift') return;
+    const tg = e.target; if (tg && tg.tagName === 'BUTTON' && tg.id !== 'calib-pad') return;   // let Run again / Use work
+    if (C && !C.done){ e.preventDefault(); calibTap(evTime(e)); }
+    else if (e.code === 'Space' || e.code === 'Enter'){ e.preventDefault(); calibStart(); }
+    return;
+  }
   if (screen === 'play' && G && !G.over){
     if (e.code === 'Escape'){ e.preventDefault(); togglePause(); return; }
     if (G.paused) return;
@@ -1500,9 +1657,17 @@ function pollPad(){
       if (down(4) || down(5)) setMode(settings.mode === 'signal' ? 'lanes' : 'signal');
       if (down(0) || down(9)) play();
       if (down(1)) closeSheet();
+      if (down(3)) calibOpen();
     } else if (screen === 'results'){
       if (down(0) || down(9)) $('#btn-retry').click();
       if (down(1)) toTitle();
+    } else if (screen === 'calib'){
+      if (C && !C.done){ if ([0,1,2,3,5,7].some(down)) calibTap(performance.now()); }
+      else {
+        if (down(0) && C && C.result && C.result.ok && !$('#calib-apply').hidden) calibApply();
+        else if (down(0) || down(3)) calibStart();
+        if (down(1)) calibBack();
+      }
     }
     padPrev[p.index] = cur;
   }
@@ -1533,7 +1698,7 @@ $('#btn-retry').addEventListener('click', () => { const r = lastRun; if (r) star
 $('#btn-back').addEventListener('click', toTitle);
 document.addEventListener('dragover', e => { if (screen === 'title'){ e.preventDefault(); } });
 document.addEventListener('drop', e => { if (screen !== 'title') return; e.preventDefault(); const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; loadFile(f); });
-document.addEventListener('visibilitychange', () => { if (document.hidden && G && !G.over) togglePause(true); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && G && !G.over) togglePause(true); if (document.hidden && screen === 'calib' && C && !C.done) calibReset(); });
 window.addEventListener('resize', () => { if (screen === 'play') resize(); });
 window.addEventListener('gamepadconnected', e => { toast('Controller connected: ' + e.gamepad.id.replace(/\s*\(.*$/, '').slice(0, 40)); pollPad(); });
 window.addEventListener('gamepaddisconnected', () => toast('Controller disconnected'));
@@ -1541,11 +1706,12 @@ window.addEventListener('gamepaddisconnected', () => toast('Controller disconnec
 function tick(now){
   pollPad();
   if (G && !G.over && !G.paused && screen === 'play') (G.mode === 'signal' ? stepSignal : stepLanes)(now);
+  if (screen === 'calib') calibStep();
   requestAnimationFrame(tick);
 }
 
 readCols(); buildSetlist(); bindSettings(); updateStrip(); loadManifest();
-window.__bbb = { syncCheck, version:'0.5', audioState:() => actx ? actx.state : 'none' };   // QA hook for automated sync tests
+window.__bbb = { syncCheck, version:'0.6', audioState:() => actx ? actx.state : 'none', calib:() => C, calibNow:() => C ? calibNow() : null };   // QA hook for automated sync tests
 requestAnimationFrame(tick);
 })();
 </script>

@@ -146,12 +146,26 @@
  {
   "slot": 13,
   "title": "Shelling",
-  "audio": null
+  "audio": "audio/13-shelling-v1.m4a",
+  "chart": "charts/13.json",
+  "duration": 159.335,
+  "grid": {
+   "on": false,
+   "bpm": 114.063
+  },
+  "gainDb": -4.2
  },
  {
   "slot": 14,
   "title": "Dallas",
-  "audio": null
+  "audio": "audio/14-dallas-v1.m4a",
+  "chart": "charts/14.json",
+  "duration": 151.371,
+  "grid": {
+   "on": false,
+   "bpm": 113.675
+  },
+  "gainDb": -1.87
  },
  {
   "slot": 15,
