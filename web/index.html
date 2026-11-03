@@ -116,7 +116,27 @@ input[type=range]{width:100%;accent-color:var(--amber)}
 .spec dd{margin:0;font-variant-numeric:tabular-nums}
 kbd{font-family:var(--f-mono);font-size:11.5px;padding:1px 6px;border:1px solid var(--seam);border-bottom-width:2px;border-radius:3px;background:var(--concrete);color:var(--chalk)}
 .fine{margin:0;color:var(--dust);font-size:13.5px;max-width:62ch}
-@media (max-width:880px){.desk{grid-template-columns:minmax(0,1fr)}.strip{position:static}}
+@media (max-width:880px){.desk{grid-template-columns:minmax(0,1fr)}}
+.sheet-close{display:none}
+@media (max-width:880px){
+  .strip{position:fixed;inset:0;align-self:stretch;z-index:40;margin:0;   /* the desktop align-self:start would size a fixed box to its content */
+    border:0;border-radius:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:18px;   /* flex, not grid: a sticky child of a grid can't leave its own row */
+    padding:0 max(20px,env(safe-area-inset-right,0px)) 0 max(20px,env(safe-area-inset-left,0px));
+    transform:translateY(100%);visibility:hidden;transition:transform .3s cubic-bezier(.2,.8,.2,1),visibility 0s linear .3s}
+  .strip.open{transform:none;visibility:visible;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+  .strip .sleeve{margin:0 calc(-1*max(20px,env(safe-area-inset-right,0px))) 0 calc(-1*max(20px,env(safe-area-inset-left,0px)));border-radius:0;aspect-ratio:16/10}
+  .sheet-close{display:inline-flex;position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));z-index:3;min-height:40px;padding:0 14px;background:rgba(16,19,23,.74);border-color:rgba(231,226,215,.28)}
+  .strip .play-row{order:99;position:sticky;bottom:0;z-index:2;margin-top:auto;
+    margin:0 calc(-1*max(20px,env(safe-area-inset-right,0px))) 0 calc(-1*max(20px,env(safe-area-inset-left,0px)));
+    padding:14px max(20px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));
+    background:var(--slab);border-top:1px solid var(--seam)}
+  .strip > *{flex-shrink:0}
+  .strip .play-row{flex-wrap:nowrap}
+  .strip .play-row .btn.primary{flex:1 1 0;min-width:0}
+  .strip .play-row .btn:not(.primary){flex:0 0 auto;padding:0 12px;font-size:12px}
+  body.sheet-open{overflow:hidden}
+}
+@media (max-width:880px) and (prefers-reduced-motion:reduce){.strip,.strip.open{transition:none}}
 
 /* play */
 #scr-play{position:fixed;inset:0;background:var(--concrete);touch-action:none;user-select:none;-webkit-user-select:none;z-index:20}
@@ -163,7 +183,7 @@ kbd{font-family:var(--f-mono);font-size:11.5px;padding:1px 6px;border:1px solid 
       <img class="plate" src="art/cover-plate.webp" alt="" aria-hidden="true">
       <div class="brand">
         <h1>Beat<span>Bom</span>Basement</h1>
-        <p class="tag">Rhythm prototype, build 0.4. Music and artwork by <em>Snasen</em>.</p>
+        <p class="tag">Rhythm prototype, build 0.5. Music and artwork by <em>Snasen</em>.</p>
       </div>
       <div class="io mono" aria-live="polite">
         <span>Input: <b id="io-last">keyboard</b></span>
@@ -177,11 +197,12 @@ kbd{font-family:var(--f-mono);font-size:11.5px;padding:1px 6px;border:1px solid 
         <ol id="setlist"></ol>
       </section>
 
-      <aside class="strip" aria-label="Selected track">
-        <figure class="sleeve" aria-hidden="true"><img id="sel-art" src="art/sleeve-00.webp" alt=""><span id="sel-no">00</span></figure>
+      <aside class="strip" id="strip" aria-label="Selected track">
+        <button class="btn sheet-close" id="sheet-close" type="button">Back to tracks</button>
+        <figure class="sleeve" aria-hidden="true"><img id="sel-art" src="art/sleeve-01.webp" alt=""><span id="sel-no">01</span></figure>
         <div>
           <p class="eyebrow mono">Selected track</p>
-          <h2 id="sel-title">Basement Test</h2>
+          <h2 id="sel-title">From a Distance</h2>
           <p id="sel-meta" class="mono"></p>
         </div>
         <p id="sel-status"></p>
@@ -205,7 +226,7 @@ kbd{font-family:var(--f-mono);font-size:11.5px;padding:1px 6px;border:1px solid 
           </div>
         </div>
 
-        <div class="actions">
+        <div class="actions play-row">
           <button class="btn primary" id="btn-play" type="button">Play</button>
           <label class="btn" for="file" id="file-lbl">Load audio</label>
           <input class="sr" type="file" id="file" accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg,.flac">
@@ -244,12 +265,12 @@ kbd{font-family:var(--f-mono);font-size:11.5px;padding:1px 6px;border:1px solid 
 
 <div id="scr-results" class="screen" hidden>
   <div class="wrap res">
-    <img class="res-art" id="r-art" src="art/sleeve-00.webp" alt="" aria-hidden="true">
+    <img class="res-art" id="r-art" src="art/sleeve-01.webp" alt="" aria-hidden="true">
     <div class="res-main">
       <div class="grade-big" id="r-grade">A</div>
       <div>
         <p class="eyebrow mono" id="r-diff">Normal</p>
-        <h2 id="r-track">Basement Test</h2>
+        <h2 id="r-track">From a Distance</h2>
         <span class="flag" id="r-flag" hidden>New best</span>
       </div>
     </div>
@@ -294,73 +315,13 @@ kbd{font-family:var(--f-mono);font-size:11.5px;padding:1px 6px;border:1px solid 
 
 /*CORE-START*/
 // ---------- pure game core (tested in isolation) ----------
-const DEMO_BPM = 96;
-const DEMO_BARS = 30;            // 28 bars of music + 2 bars of drone tail
-const SCALE = [0,3,5,7,10,12,15,17];
-const RIFF_A = [0,null,2,null,4,3,null,1, 0,null,2,null,5,4,3,null];
-const RIFF_B = [4,null,5,4,6,null,5,3, 7,6,5,null,4,3,2,null];
 const JW = { perfect:0.045, great:0.090, good:0.135 };
 const DIFF = {
   easy:   { gap:0.30, chord:1, rate:1.3, gate:0.60 },
   normal: { gap:0.16, chord:1, rate:2.3, gate:0.35 },
   hard:   { gap:0.10, chord:2, rate:3.6, gate:0.15 }
 };
-const PRI = { kick:0, snare:1, bleep:2, hat:3 };
 const ONSET_BIAS = 0.010; // measured: raw detector fires ~10.6 ms early on synthetic attacks (sd 3.7 ms)
-
-function demoEvents(){
-  const beat = 60/DEMO_BPM, ev = [];
-  for (let bar = 0; bar < 28; bar++){
-    const tb = bar*4*beat, at = b => tb + b*beat;
-    const sec = bar<2 ? 'drone' : bar<4 ? 'pulse' : bar<12 ? 'A' : bar<20 ? 'B' : bar<24 ? 'break' : 'out';
-    if (sec === 'pulse') for (let b = 0; b < 4; b++) ev.push({ t:at(b), k:'kick' });
-    if (sec === 'A' || sec === 'B' || sec === 'out'){
-      const kicks = sec==='A' ? [0,2] : sec==='B' ? [0,1.5,2] : [0,1,2,3];
-      kicks.forEach(b => ev.push({ t:at(b), k:'kick' }));
-      [1,3].forEach(b => ev.push({ t:at(b), k:'snare' }));
-      const hats = sec==='A' ? [0.5,1.5,2.5,3.5] : [0,0.5,1,1.5,2,2.5,3,3.5];
-      hats.forEach(b => ev.push({ t:at(b), k:'hat' }));
-      const riff = sec==='A' ? RIFF_A : sec==='B' ? RIFF_B : (bar%4 < 2 ? RIFF_A : RIFF_B);
-      for (let i = 0; i < 8; i++){ const p = riff[(bar%2)*8 + i]; if (p != null) ev.push({ t:at(i/2), k:'bleep', p }); }
-    }
-    if (sec === 'break'){
-      for (let b = 0; b < 4; b++){ const p = RIFF_A[(bar%2)*8 + b*2]; if (p != null) ev.push({ t:at(b), k:'bleep', p }); }
-    }
-  }
-  ev.sort((a,b) => a.t - b.t || PRI[a.k] - PRI[b.k]);
-  return ev;
-}
-
-function demoChart(diff){
-  const D = DIFF[diff];
-  const ev = demoEvents().filter(e => e.k==='kick' || e.k==='snare' || (e.k==='bleep' && diff!=='easy') || (e.k==='hat' && diff==='hard'));
-  const groups = [];
-  for (const e of ev){
-    const g = groups[groups.length-1];
-    if (g && Math.abs(g.t - e.t) < 0.002) g.items.push(e); else groups.push({ t:e.t, items:[e] });
-  }
-  const notes = []; let kA = 0, sA = 0, hA = 0, lastT = -9, prev = [];
-  for (const g of groups){
-    if (g.t - lastT < D.gap - 1e-6) continue;
-    g.items.sort((a,b) => PRI[a.k] - PRI[b.k]);
-    const lanes = [];
-    for (const e of g.items){
-      if (lanes.length >= D.chord) break;
-      let l;
-      if (e.k === 'kick') l = (kA%2) ? 2 : 1;
-      else if (e.k === 'snare') l = (sA%2) ? 3 : 0;
-      else if (e.k === 'bleep') l = Math.min(3, e.p >> 1);
-      else { l = (hA%2) ? 3 : 0; if (lanes.includes(l) || prev.includes(l)) l = 3 - l; }
-      if (lanes.includes(l)) continue;
-      if (e.k === 'kick') kA++; else if (e.k === 'snare') sA++; else if (e.k === 'hat') hA++;
-      lanes.push(l);
-    }
-    if (!lanes.length) continue;
-    lanes.forEach(l => notes.push({ t:g.t, lane:l }));
-    lastT = g.t; prev = lanes;
-  }
-  return notes;
-}
 
 function makeFFT(n){
   const cos = new Float32Array(n/2), sin = new Float32Array(n/2), rev = new Uint32Array(n);
@@ -545,84 +506,11 @@ function signalChart(an, duration, diff, opt){
   }
   return signalCourse(taps, bands, diff);
 }
-function demoSignalChart(diff){
-  const D = SIG[diff], bar = 4*60/DEMO_BPM, taps = []; let lastT = -9;
-  for (const e of demoEvents()){
-    if (!(e.k === 'kick' || e.k === 'snare' || (e.k === 'bleep' && diff !== 'easy'))) continue;
-    const b = Math.floor(e.t/bar + 1e-6); if (b >= 20 && b < 24) continue;   // the break is all bands
-    if (e.t - lastT < D.gap - 1e-6) continue;
-    taps.push({ t:e.t, x: e.k === 'kick' ? 0.18 : e.k === 'snare' ? 0.78 : 0.32 + e.p*0.08 });
-    lastT = e.t;
-  }
-  const glide = (t0, t1, x0, x1) => {
-    const pts = [];
-    for (let t = t0; t <= t1 + 1e-6; t += 0.25){ const u = (t - t0)/(t1 - t0); pts.push({ t, x:x0 + (x1 - x0)*(0.5 - 0.5*Math.cos(Math.PI*u)) }); }
-    return { pts };
-  };
-  const bands = [glide(0.8, 4.4, 0.5, 0.3), glide(20*bar + 0.3, 22*bar - 0.3, 0.3, 0.72), glide(22*bar + 0.3, 24*bar - 0.4, 0.72, 0.4)];
-  return signalCourse(taps, bands, diff);
-}
 
 function accuracyOf(c){ const n = c.perfect + c.great + c.good + c.miss; return n ? (c.perfect + 0.7*c.great + 0.4*c.good)/n : 0; }
 function gradeOf(acc){ return acc >= 0.95 ? 'S' : acc >= 0.90 ? 'A' : acc >= 0.80 ? 'B' : acc >= 0.70 ? 'C' : 'D'; }
 function judgeOf(d){ const a = Math.abs(d); return a <= JW.perfect ? 'perfect' : a <= JW.great ? 'great' : a <= JW.good ? 'good' : null; }
 
-// The placeholder track is synthesized sample by sample: far faster than an offline
-// Web Audio graph with ~600 short notes, and identical on every machine.
-function biq(type, f, Q, sr){
-  const w = 2*Math.PI*f/sr, c = Math.cos(w), s = Math.sin(w), a = s/(2*Q);
-  let b0, b1, b2;
-  if (type === 'lp'){ b0 = (1-c)/2; b1 = 1-c; b2 = (1-c)/2; }
-  else if (type === 'hp'){ b0 = (1+c)/2; b1 = -(1+c); b2 = (1+c)/2; }
-  else { b0 = a; b1 = 0; b2 = -a; }
-  const a0 = 1+a, A1 = -2*c/a0, A2 = (1-a)/a0; b0 /= a0; b1 /= a0; b2 /= a0;
-  let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
-  return x => { const y = b0*x + b1*x1 + b2*x2 - A1*y1 - A2*y2; x2 = x1; x1 = x; y2 = y1; y1 = y; return y; };
-}
-function synthDemo(sr){
-  const beat = 60/DEMO_BPM, dur = DEMO_BARS*4*beat, n = Math.ceil(dur*sr), TAU = 2*Math.PI;
-  const L = new Float32Array(n), R = new Float32Array(n), bus = new Float32Array(n);
-  let seed = 7; const rnd = () => ((seed = (seed*16807) % 2147483647)/2147483647)*2 - 1;
-  // drone bed: two detuned saws + triangle through two resonant low-passes crossfaded by a slow LFO, plus sub
-  const lpA = biq('lp', 380, 4, sr), lpB = biq('lp', 1150, 5, sr);
-  let p1 = 0, p2 = 0, p3 = 0;
-  const f1 = 73.42/sr, f2 = 73.42*1.004/sr, f3 = 109.8/sr;
-  for (let i = 0; i < n; i++){
-    const t = i/sr;
-    p1 += f1; if (p1 >= 1) p1 -= 1; p2 += f2; if (p2 >= 1) p2 -= 1; p3 += f3; if (p3 >= 1) p3 -= 1;
-    const x = (2*p1 - 1 + 2*p2 - 1)*0.5 + (1 - 4*Math.abs(p3 - 0.5))*0.6;
-    const lfo = Math.sin(TAU*0.07*t);
-    const y = lpA(x)*(0.5 + 0.45*lfo) + lpB(x)*(0.5 - 0.45*lfo);
-    const env = Math.min(1, t/4, Math.max(0, (dur - t)/5));
-    const v = (y*0.12 + Math.sin(TAU*36.71*t)*0.3)*env;
-    L[i] += v; R[i] += v;
-  }
-  for (const e of demoEvents()){
-    const s0 = Math.round(e.t*sr);
-    if (e.k === 'kick'){
-      let ph = 0; const len = Math.round(0.45*sr);
-      for (let j = 0; j < len && s0+j < n; j++){ const tt = j/sr; ph += TAU*(42 + 98*Math.exp(-tt/0.04))/sr; const v = Math.sin(ph)*0.9*Math.exp(-tt/0.09); L[s0+j] += v; R[s0+j] += v; }
-    } else if (e.k === 'snare'){
-      const bp = biq('bp', 1900, 0.8, sr); let ph = 0; const len = Math.round(0.2*sr);
-      for (let j = 0; j < len && s0+j < n; j++){ const tt = j/sr; ph += 190/sr; const tri = 1 - 4*Math.abs((ph % 1) - 0.5); const v = bp(rnd())*0.9*Math.exp(-tt/0.04) + tri*0.25*Math.exp(-tt/0.025); L[s0+j] += v*0.9; R[s0+j] += v; }
-    } else if (e.k === 'hat'){
-      const hp = biq('hp', 7000, 0.7, sr); const len = Math.round(0.06*sr);
-      for (let j = 0; j < len && s0+j < n; j++){ const v = hp(rnd())*0.22*Math.exp(-(j/sr)/0.01); L[s0+j] += v; R[s0+j] += v*0.8; }
-    } else {
-      const f = 293.66*Math.pow(2, SCALE[e.p]/12)/sr, lp = biq('lp', 2400, 0.7, sr), len = Math.round(0.25*sr); let ph = 0;
-      for (let j = 0; j < len && s0+j < n; j++){ const tt = j/sr; ph += f; if (ph >= 1) ph -= 1; const env = Math.min(1, tt/0.005)*Math.exp(-tt/0.05); bus[s0+j] += lp(ph < 0.5 ? 1 : -1)*0.2*env; }
-    }
-  }
-  // dark, BBD-style feedback delay on the bleeps (dotted eighth)
-  const D = Math.round(beat*0.75*sr), dlp = biq('lp', 1700, 0.7, sr), echo = new Float32Array(n);
-  for (let i = 0; i < n; i++){
-    const w = i >= D ? dlp(bus[i-D] + 0.38*echo[i-D]) : 0; echo[i] = w;
-    L[i] += bus[i]*0.6 + w*0.55; R[i] += bus[i]*0.6 + w*0.4;
-  }
-  let peak = 0; for (let i = 0; i < n; i++){ L[i] = Math.tanh(L[i]*1.1); R[i] = Math.tanh(R[i]*1.1); peak = Math.max(peak, Math.abs(L[i]), Math.abs(R[i])); }
-  const g = 0.89/(peak || 1); for (let i = 0; i < n; i++){ L[i] *= g; R[i] *= g; }
-  return { L, R };
-}
 
 // Tempo and beat grid from the onset-strength envelope: autocorrelation picks the beat period,
 // a comb search picks the phase. conf is how far the winning lag stands above the rest (z-score).
@@ -743,12 +631,15 @@ const ALBUM = [
   ['Sticks and Stones and Drones','3:45'],['Discerned Wavetables','2:09'],['Village and a BBD Heart','1:50'],['Cloud Dub','1:55'],
   ['Shelling','2:39'],['Dallas','2:31'],['Stålbølger','5:36']
 ];
-const tracks = [{ id:'demo', no:'00', title:'Basement Test', dur:'1:15', demo:true, buffer:null, charts:{} }]
-  .concat(ALBUM.map((a,i) => ({ id:'t'+(i+1), no:String(i+1).padStart(2,'0'), title:a[0], dur:a[1], buffer:null, analysis:null, charts:{}, file:null, ship:null, sync:null, gainDb:0 })));
+const tracks = ALBUM.map((a,i) => ({ id:'t'+(i+1), no:String(i+1).padStart(2,'0'), title:a[0], dur:a[1], buffer:null, analysis:null, charts:{}, file:null, ship:null, sync:null, gainDb:0 }));
 let sel = 0, screen = 'title', G = null, lastRun = null, lastInput = 'keyboard';
 
 // audio
-let actx = null;
+let actx = null, audioOK = false;
+// Browsers only allow sound after a click, tap or key press on the page; controller buttons don't count.
+// The first such gesture creates/resumes the audio clock so a controller can drive everything after it.
+function unlockAudio(){ try { ctx(); if (actx.state !== 'running' && !(G && G.paused)) actx.resume(); audioOK = true; } catch(e){} }
+['pointerdown','keydown','touchend'].forEach(ev => window.addEventListener(ev, unlockAudio, { capture:true, passive:true }));
 function ctx(){
   if (!actx){ const C = window.AudioContext || window.webkitAudioContext; actx = new C({ latencyHint:'interactive' }); }
   if (actx.state === 'suspended' && !(G && G.paused)) actx.resume();
@@ -758,13 +649,6 @@ function decode(ac, ab){
   return new Promise((res, rej) => { const p = ac.decodeAudioData(ab, res, rej); if (p && p.then) p.then(res, rej); });
 }
 
-async function renderDemo(){
-  const ac = ctx(), sr = ac.sampleRate, d = synthDemo(sr);
-  const buf = ac.createBuffer(2, d.L.length, sr);
-  if (buf.copyToChannel){ buf.copyToChannel(d.L, 0); buf.copyToChannel(d.R, 1); }
-  else { buf.getChannelData(0).set(d.L); buf.getChannelData(1).set(d.R); }
-  return buf;
-}
 
 async function analyzeBuffer(buf, onProgress){
   const ch = buf.numberOfChannels, ds = buf.sampleRate >= 32000 ? 2 : 1, len = Math.floor(buf.length/ds);
@@ -779,7 +663,6 @@ async function analyzeBuffer(buf, onProgress){
 // ---------- UI: title ----------
 const fileIn = $('#file');
 function statusOf(tr){
-  if (tr.demo) return { txt:'Synth', cls:'c-synth' };
   if (tr.file) return { txt:'Your file', cls:'c-live' };
   if (tr.ship) return { txt:'Album', cls:'c-live' };
   return { txt:'No audio', cls:'' };
@@ -787,11 +670,11 @@ function statusOf(tr){
 function buildSetlist(){
   const ol = $('#setlist'); ol.innerHTML = '';
   tracks.forEach((tr, i) => {
-    if (i === 1){ const s = document.createElement('li'); s.className = 'side'; s.textContent = 'Music for Drone · Snasen · 2015'; ol.appendChild(s); }
+    if (i === 0){ const s = document.createElement('li'); s.className = 'side'; s.textContent = 'Music for Drone · Snasen · 2015'; ol.appendChild(s); }
     const li = document.createElement('li');
     const b = document.createElement('button'); b.type = 'button'; b.className = 'row'; b.id = 'row-' + tr.id;
     b.innerHTML = `<span class="no">${tr.no}</span><span class="ttl">${esc(tr.title)}</span><span class="chip"></span><span class="dur">${tr.dur}</span><span class="grade">–</span>`;
-    b.addEventListener('click', () => select(i));
+    b.addEventListener('click', () => { select(i); openSheet(); });
     b.addEventListener('dblclick', () => { select(i); play(); });
     li.appendChild(b); ol.appendChild(li);
   });
@@ -813,24 +696,19 @@ function updateStrip(){
   const sa = $('#sel-art'), su = sleeveUrl(tr);
   if (!sa.src.endsWith(su)){ sa.style.opacity = 0; const im = artImg(su); const swap = () => { sa.src = su; sa.style.opacity = 1; }; ready(im) ? swap() : (im.onload = swap); }
   $('#sel-no').textContent = tr.no;
-  if (tr.demo){
-    $('#sel-meta').textContent = 'Warm-up · 96 BPM · built in your browser';
-    $('#sel-status').textContent = 'A synth warm-up track with a hand-written chart. Good for checking your audio offset before the album.';
-  } else {
-    const d = tr.buffer ? fmtTime(tr.buffer.duration) : tr.dur;
-    const g = tr.file ? tr.grid : tr.ship && tr.ship.grid;
-    const gt = g ? (g.on ? ` · ${Math.round(g.bpm*10)/10} BPM` : ' · free time') : '';
-    $('#sel-meta').textContent = `Track ${tr.no} of 15 · ${d}${gt}`;
-    $('#sel-status').textContent = tr.file
-      ? `Playing your file “${tr.file}”. Its chart is generated in the browser.`
-      : tr.ship
-        ? `Album audio with an auto-drafted chart (not yet hand-tuned).${tr.sync ? ' Sync check: ' + fmtSync(tr.sync) + '.' : ''}`
-        : 'Audio for this track hasn’t been delivered yet. Load a file to try it with a generated chart.';
-  }
+  const d = tr.buffer ? fmtTime(tr.buffer.duration) : tr.dur;
+  const g = tr.file ? tr.grid : tr.ship && tr.ship.grid;
+  const gt = g ? (g.on ? ` · ${Math.round(g.bpm*10)/10} BPM` : ' · free time') : '';
+  $('#sel-meta').textContent = `Track ${tr.no} of 15 · ${d}${gt}`;
+  $('#sel-status').textContent = tr.file
+    ? `Playing your file “${tr.file}”. Its chart is generated in the browser.`
+    : tr.ship
+      ? `Album audio with an auto-drafted chart (not yet hand-tuned).${tr.sync ? ' Sync check: ' + fmtSync(tr.sync) + '.' : ''}`
+      : 'Audio for this track hasn’t been delivered yet. Load a file to try it with a generated chart.';
   const rec = best[bestKey(tr.id, settings.mode, settings.diff)];
   $('#sel-best').innerHTML = rec ? `Best on ${cap(settings.mode)} · ${cap(settings.diff)}: <b>${rec.grade}</b> · ${(rec.acc*100).toFixed(1)}% · ${rec.score.toLocaleString('en-US')}` : `No ${settings.mode} run on ${settings.diff} yet`;
-  const pb = $('#btn-play'); pb.textContent = (tr.demo || tr.buffer || tr.ship) ? 'Play' : 'Load audio to play';
-  $('#file-lbl').hidden = !!tr.demo; $('#file-lbl').textContent = tr.ship ? 'Use my own file' : 'Load audio';
+  const pb = $('#btn-play'); pb.textContent = (tr.buffer || tr.ship) ? 'Play' : 'Load audio to play';
+  $('#file-lbl').textContent = tr.ship ? 'Use my own file' : 'Load audio';
 }
 const cap = s => s[0].toUpperCase() + s.slice(1);
 const fmtTime = s => { const r = Math.round(s); return `${Math.floor(r/60)}:${String(r%60).padStart(2,'0')}`; };
@@ -845,6 +723,22 @@ const bestKey = (id, mode, diff) => mode === 'lanes' ? id + ':' + diff : id + ':
 function setSeg(id, v){
   document.querySelectorAll('#' + id + ' label').forEach(l => { const inp = l.querySelector('input'); inp.checked = inp.value === v; l.classList.toggle('on', inp.checked); });
 }
+// ---------- phone: the track panel as a sheet ----------
+const strip = $('#strip'), narrowMQ = window.matchMedia ? matchMedia('(max-width:880px)') : { matches:false };
+const sheetOpen = () => strip.classList.contains('open');
+function openSheet(){
+  if (!narrowMQ.matches) return;
+  strip.classList.add('open'); strip.setAttribute('role', 'dialog'); strip.setAttribute('aria-modal', 'true');
+  document.body.classList.add('sheet-open'); strip.scrollTop = 0;
+  setTimeout(() => { try { $('#sheet-close').focus({ preventScroll:true }); } catch(e){} }, 60);
+}
+function closeSheet(){
+  if (!sheetOpen()) return;
+  strip.classList.remove('open'); strip.removeAttribute('role'); strip.removeAttribute('aria-modal');
+  document.body.classList.remove('sheet-open');
+  const b = $('#row-' + tracks[sel].id); if (b){ try { b.focus({ preventScroll:true }); } catch(e){} }
+}
+if (narrowMQ.addEventListener) narrowMQ.addEventListener('change', () => { if (!narrowMQ.matches) closeSheet(); });
 function setDiff(d){
   settings.diff = d; saveSettings(); setSeg('diff', d);
   updateSetlist(); updateStrip();
@@ -897,7 +791,6 @@ function show(name){
 async function loadFile(file){
   const tr = tracks[sel];
   if (!file) return;
-  if (tr.demo){ toast('Pick an album track (01 to 15) first, then load its audio.'); return; }
   busy('Decoding ' + file.name + '…', null);
   try {
     const ab = await file.arrayBuffer();
@@ -912,16 +805,14 @@ async function loadFile(file){
 
 async function play(){
   const tr = tracks[sel], diff = settings.diff, mode = settings.mode;
-  if (!tr.demo && !tr.buffer && !tr.ship){ fileIn.click(); return; }
+  if (!tr.buffer && !tr.ship){ fileIn.click(); return; }
   ctx();
   try {
-    if (tr.demo && !tr.buffer){ busy('Wiring up the basement test track…', null); tr.buffer = await renderDemo(); }
     if (tr.ship && !tr.file && !tr.buffer) await loadShipped(tr);
     const ck = mode + ':' + diff;
     let chart = tr.charts[ck];
     if (!chart){
-      if (tr.demo) chart = mode === 'signal' ? demoSignalChart(diff) : demoChart(diff);
-      else {
+      {
         if (!tr.analysis){
           busy('Listening to ' + tr.title + '…', 0); tr.analysis = await analyzeBuffer(tr.buffer, p => busy(null, p));
           busy('Finding the beat…', null); await new Promise(r => setTimeout(r, 30));
@@ -1358,6 +1249,16 @@ function drawSignal(t, now){
 
 function drawOverlay(t, now, hitY){
   const x = c2d, W = cw, H = ch;
+  if (actx && actx.state !== 'running' && !G.paused){
+    x2save(() => {
+      x.fillStyle = 'rgba(10,12,14,0.82)'; x.fillRect(0, H*0.62 - 46, W, 92);
+      x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = COL.amber;
+      x.font = '800 ' + Math.round(Math.min(30, W*0.06)) + 'px ' + getFont('display');
+      x.fillText('CLICK OR PRESS ANY KEY TO TURN ON SOUND', W/2, H*0.62 - 12);
+      x.font = '600 12px ' + getFont('mono'); x.fillStyle = COL.dust;
+      x.fillText('Browsers need one click or key press before a page can play audio. Your controller works after that.', W/2, H*0.62 + 20);
+    });
+  }
   if (G.missFx && now - G.missFx < 260){
     const p = (now - G.missFx)/260, v = x.createRadialGradient(W/2, H/2, Math.min(W, H)*0.35, W/2, H/2, Math.max(W, H)*0.75);
     v.addColorStop(0, rgba(COL.rust, 0)); v.addColorStop(1, rgba(COL.rust, 0.28*(1 - p)));
@@ -1496,6 +1397,7 @@ window.addEventListener('keydown', e => {
   }
   const tag = (e.target && e.target.tagName) || '';
   const inField = tag === 'INPUT' && e.target.type === 'range';
+  if (screen === 'title' && e.key === 'Escape' && sheetOpen()){ e.preventDefault(); closeSheet(); return; }
   if (screen === 'title' && !inField){
     if (e.key === 'ArrowDown'){ e.preventDefault(); select(sel + 1); }
     else if (e.key === 'ArrowUp'){ e.preventDefault(); select(sel - 1); }
@@ -1533,44 +1435,71 @@ cv.addEventListener('pointermove', e => { if (G && G.mode === 'signal' && e.poin
   const l = touchLane.get(e.pointerId); if (l != null){ release(l); touchLane.delete(e.pointerId); }
 }));
 
-// gamepad, standard mapping. Lanes: D-pad shape, mirrored on X A Y B. Signal: stick or D-pad steers, A X RB RT pulse.
-const LANE_BTNS = [[14,2],[13,0],[12,3],[15,1]], PULSE_BTNS = [0,2,5,7];
-const padPrev = {}; let padState = 'idle';
-function setPadLabel(txt, warn){ const el = $('#io-pad'); el.textContent = txt; el.classList.toggle('warn', !!warn); }
+// ---------- controller ----------
+// Lanes: D-pad shape, mirrored on X A Y B. Signal: stick or D-pad steers, any face button, RB or RT pulses.
+const LANE_BTNS = [[14,2],[13,0],[12,3],[15,1]], PULSE_BTNS = [0,1,2,3,5,7];
+const padPrev = {}, padHat = {}, padNav = {}; let padState = 'idle', padText = '';
+const dead = v => Math.abs(v) < 0.18 ? 0 : (v - Math.sign(v)*0.18)/0.82;
+function setPadLabel(txt, warn){ if (txt === padText) return; padText = txt; const el = $('#io-pad'); el.textContent = txt; el.classList.toggle('warn', !!warn); }
+// Read any pad into the standard layout. Pads Chrome doesn't recognise report mapping "" — their face buttons are
+// usually still 0–3 and Start 9, but the D-pad often arrives as one "hat" axis that rests outside −1…1 (often axes[9]).
+function readPad(p){
+  const b = new Array(17).fill(false), ax = p.axes || [];
+  for (let i = 0; i < Math.min(17, p.buttons.length); i++){ const x = p.buttons[i]; b[i] = !!x && (x.pressed || x.value > 0.5); }
+  if (p.mapping !== 'standard'){
+    if (padHat[p.index] == null) for (let i = 4; i < ax.length; i++) if (Math.abs(ax[i]) > 1.05){ padHat[p.index] = i; break; }
+    const h = padHat[p.index];
+    if (h != null && Math.abs(ax[h]) <= 1.01){
+      const k = Math.round((ax[h] + 1)/(2/7));          // 0 up, 1 up-right, 2 right … 7 up-left
+      if (k === 7 || k <= 1) b[12] = true; if (k >= 1 && k <= 3) b[15] = true;
+      if (k >= 3 && k <= 5) b[13] = true; if (k >= 5 && k <= 7) b[14] = true;
+    }
+  }
+  const lx = ax[0] || 0, ly = ax[1] || 0;
+  return { b, lx, ly, nav:{ up:b[12] || ly < -0.6, down:b[13] || ly > 0.6, left:b[14] || lx < -0.6, right:b[15] || lx > 0.6 } };
+}
+// menu movement: one step on press, then repeat while held (like a keyboard)
+function navEdge(pi, k, on, now){
+  const s = (padNav[pi] = padNav[pi] || {})[k] || (padNav[pi][k] = { on:false, next:0 });
+  if (!on){ s.on = false; return false; }
+  if (!s.on){ s.on = true; s.next = now + 380; return true; }
+  if (now >= s.next){ s.next = now + 110; return true; }
+  return false;
+}
 function pollPad(){
+  if (!window.isSecureContext){ setPadLabel('Controller: only works on the https:// address of this page', true); return; }
   let pads;
   try { pads = navigator.getGamepads ? navigator.getGamepads() : []; }
-  catch(e){ if (padState !== 'blocked'){ padState = 'blocked'; setPadLabel('Controller: blocked by this viewer. Open the HTML file in a browser.', true); } return; }
-  let any = null, steer = 0;
+  catch(e){ setPadLabel('Controller: blocked in this viewer. Open bbb.widr.one in Chrome.', true); return; }
+  const now = performance.now(); let any = null, steer = 0;
   for (const p of pads){
-    if (!p) continue; any = p;
-    const prev = padPrev[p.index] || [], cur = p.buttons.map(b => b.pressed || b.value > 0.5);
+    if (!p || p.connected === false) continue; any = p;
+    const r = readPad(p), cur = r.b, prev = padPrev[p.index] || [];
     const down = i => cur[i] && !prev[i], up = i => !cur[i] && prev[i];
-    if (cur.some(Boolean)) setInput('controller');
+    const nav = k => navEdge(p.index, k, r.nav[k], now);
+    if (cur.some(Boolean) || Math.abs(r.lx) > 0.5 || Math.abs(r.ly) > 0.5) setInput('controller');
     if (screen === 'play' && G && !G.over){
       if (down(9)) togglePause();
       if (!G.paused){
         if (G.mode === 'signal'){
-          let ax = (p.axes && p.axes.length) ? p.axes[0] : 0;
-          ax = Math.abs(ax) < 0.18 ? 0 : (ax - Math.sign(ax)*0.18)/0.82;
-          if (cur[14]) ax = -1; if (cur[15]) ax = 1;
+          let ax = dead(r.lx); if (cur[14]) ax = -1; if (cur[15]) ax = 1;
           if (Math.abs(ax) > Math.abs(steer)) steer = ax;
-          if (Math.abs(ax) > 0.3) setInput('controller');
           if (PULSE_BTNS.some(down)) pulse(performance.now());
         } else {
-          LANE_BTNS.forEach((bs, l) => { if (bs.some(down)) press(l, performance.now()); if (bs.some(up) && bs.every(b => !cur[b])) release(l); });
+          LANE_BTNS.forEach((bs, l) => { if (bs.some(down)) press(l, performance.now()); if (bs.some(up) && bs.every(i => !cur[i])) release(l); });
         }
       } else {
-        if (down(12)) moveFocus(-1); if (down(13)) moveFocus(1);
+        if (nav('up')) moveFocus(-1); if (nav('down')) moveFocus(1);
         if (down(0) && document.activeElement && document.activeElement.click) document.activeElement.click();
         if (down(1)) togglePause(false);
       }
     } else if (screen === 'title'){
-      if (down(13)) select(sel + 1); if (down(12)) select(sel - 1);
+      if (nav('down')) select(sel + 1); if (nav('up')) select(sel - 1);
       const ds = ['easy','normal','hard'], di = ds.indexOf(settings.diff);
-      if (down(15) && di < 2) setDiff(ds[di+1]); if (down(14) && di > 0) setDiff(ds[di-1]);
+      if (nav('right') && di < 2) setDiff(ds[di+1]); if (nav('left') && di > 0) setDiff(ds[di-1]);
       if (down(4) || down(5)) setMode(settings.mode === 'signal' ? 'lanes' : 'signal');
       if (down(0) || down(9)) play();
+      if (down(1)) closeSheet();
     } else if (screen === 'results'){
       if (down(0) || down(9)) $('#btn-retry').click();
       if (down(1)) toTitle();
@@ -1578,8 +1507,12 @@ function pollPad(){
     padPrev[p.index] = cur;
   }
   if (G && G.mode === 'signal' && !G.paused) G.padSteer = steer;
-  if (any && padState !== 'on'){ padState = 'on'; setPadLabel('Controller: ' + any.id.replace(/\s*\(.*$/, '').slice(0, 36)); }
-  if (!any && padState === 'on'){ padState = 'idle'; setPadLabel('Controller: press any button to connect'); }
+  if (any){
+    const name = any.id.replace(/\s*\(.*$/, '').slice(0, 32) || 'connected';
+    const layout = any.mapping === 'standard' ? '' : ' · non-standard layout';
+    const blocked = actx && actx.state === 'suspended' && !(G && G.paused);
+    setPadLabel(`Controller: ${name}${layout}${blocked ? ' · click or press a key once to allow sound' : ''}`, blocked);
+  } else setPadLabel('Controller: press any button to connect');
 }
 function moveFocus(dir){
   const items = [...document.querySelectorAll('#pause [data-nav]')];
@@ -1588,8 +1521,9 @@ function moveFocus(dir){
 }
 
 // ---------- wiring ----------
-function toTitle(){ stopGame(); show('title'); updateSetlist(); updateStrip(); const b = $('#row-' + tracks[sel].id); if (b) b.focus(); }
+function toTitle(){ stopGame(); closeSheet(); show('title'); updateSetlist(); updateStrip(); const b = $('#row-' + tracks[sel].id); if (b) b.focus(); }
 $('#btn-play').addEventListener('click', play);
+$('#sheet-close').addEventListener('click', closeSheet);
 fileIn.addEventListener('change', () => { const f = fileIn.files && fileIn.files[0]; fileIn.value = ''; loadFile(f); });
 $('#btn-pause').addEventListener('click', () => togglePause(true));
 $('#btn-resume').addEventListener('click', () => togglePause(false));
@@ -1601,7 +1535,8 @@ document.addEventListener('dragover', e => { if (screen === 'title'){ e.preventD
 document.addEventListener('drop', e => { if (screen !== 'title') return; e.preventDefault(); const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; loadFile(f); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && G && !G.over) togglePause(true); });
 window.addEventListener('resize', () => { if (screen === 'play') resize(); });
-window.addEventListener('gamepadconnected', () => pollPad());
+window.addEventListener('gamepadconnected', e => { toast('Controller connected: ' + e.gamepad.id.replace(/\s*\(.*$/, '').slice(0, 40)); pollPad(); });
+window.addEventListener('gamepaddisconnected', () => toast('Controller disconnected'));
 
 function tick(now){
   pollPad();
@@ -1610,7 +1545,7 @@ function tick(now){
 }
 
 readCols(); buildSetlist(); bindSettings(); updateStrip(); loadManifest();
-window.__bbb = { syncCheck, version:'0.4' };   // QA hook for automated sync tests
+window.__bbb = { syncCheck, version:'0.5', audioState:() => actx ? actx.state : 'none' };   // QA hook for automated sync tests
 requestAnimationFrame(tick);
 })();
 </script>
