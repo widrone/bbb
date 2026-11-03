@@ -170,6 +170,13 @@
  {
   "slot": 15,
   "title": "Stålbølger",
-  "audio": null
+  "audio": "audio/15-stalbolger-v1.m4a",
+  "chart": "charts/15.json",
+  "duration": 336.829,
+  "grid": {
+   "on": false,
+   "bpm": 118.392
+  },
+  "gainDb": -2.2
  }
 ]

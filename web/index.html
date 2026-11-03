@@ -153,6 +153,11 @@ kbd{font-family:var(--f-mono);font-size:11.5px;padding:1px 6px;border:1px solid 
 .bar i{display:block;height:100%;width:0;background:var(--amber);transition:width .12s}
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;background:var(--chalk);color:var(--concrete);padding:10px 16px;border-radius:4px;font-weight:600;max-width:calc(100% - 32px);text-align:center}
 
+/* controller focus */
+.pad-hint{display:none;margin:0;color:var(--dust)}
+body.pad .pad-hint{display:block}
+body.pad #scr-results .btn:focus,body.pad #pause .btn:focus,body.pad #scr-calib .btn:focus,body.pad .calib-pad:focus{outline:3px solid var(--amber);outline-offset:3px}
+body.pad #scr-results .btn.primary:focus,body.pad #pause .btn.primary:focus,body.pad #scr-calib .btn.primary:focus{outline-color:var(--chalk)}
 /* calibration */
 .calib-entry{margin-top:28px;padding-top:18px;border-top:1px solid var(--seam);display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
 .calib-entry .fine{flex:1 1 240px}
@@ -200,7 +205,7 @@ kbd{font-family:var(--f-mono);font-size:11.5px;padding:1px 6px;border:1px solid 
       <img class="plate" src="art/cover-plate.webp" alt="" aria-hidden="true">
       <div class="brand">
         <h1>Beat<span>Bom</span>Basement</h1>
-        <p class="tag">Rhythm prototype, build 0.6. Music and artwork by <em>Snasen</em>.</p>
+        <p class="tag">Rhythm prototype, build 0.7. Music and artwork by <em>Snasen</em>.</p>
       </div>
       <div class="io mono" aria-live="polite">
         <span>Input: <b id="io-last">keyboard</b></span>
@@ -280,6 +285,7 @@ kbd{font-family:var(--f-mono);font-size:11.5px;padding:1px 6px;border:1px solid 
       <button class="btn primary" id="btn-resume" type="button" data-nav>Resume</button>
       <button class="btn" id="btn-restart" type="button" data-nav>Restart track</button>
       <button class="btn" id="btn-quit" type="button" data-nav>Back to setlist</button>
+      <p class="mono pad-hint">D-pad or stick to choose · A select · B resume</p>
     </div>
   </div>
 </div>
@@ -315,12 +321,13 @@ kbd{font-family:var(--f-mono);font-size:11.5px;padding:1px 6px;border:1px solid 
       <p class="eyebrow mono">Your timing, early to late</p>
       <canvas id="r-hist" aria-label="Histogram of hit timing"></canvas>
       <p id="r-timing"></p>
-      <div class="actions"><button class="btn" id="btn-apply" type="button" hidden>Apply offset</button></div>
+      <div class="actions"><button class="btn" id="btn-apply" type="button" data-nav hidden>Apply offset</button></div>
     </div>
     <div class="actions">
-      <button class="btn primary" id="btn-retry" type="button">Retry</button>
-      <button class="btn" id="btn-back" type="button">Setlist</button>
+      <button class="btn primary" id="btn-retry" type="button" data-nav>Retry</button>
+      <button class="btn" id="btn-back" type="button" data-nav>Setlist</button>
     </div>
+    <p class="mono pad-hint">D-pad or stick to choose · A select · B setlist · Start retry</p>
   </div>
 </div>
 
@@ -1389,8 +1396,9 @@ function finish(){
   $('#r-grade').textContent = grade;
   $('#r-track').textContent = G.track.title; $('#r-art').src = sleeveUrl(G.track);
   $('#r-diff').textContent = cap(G.mode) + ' · ' + cap(G.diff) + ' · ' + G.notes.length + ' notes';
-  $('#r-flag').hidden = !(isBest || c.miss === 0);
-  $('#r-flag').textContent = c.miss === 0 ? (isBest ? 'Full combo · new best' : 'Full combo') : 'New best';
+  const full = c.miss === 0 && (c.perfect + c.great + c.good) === G.notes.length && G.notes.length > 0;
+  $('#r-flag').hidden = !(isBest || full);
+  $('#r-flag').textContent = full ? (isBest ? 'Full combo · new best' : 'Full combo') : 'New best';
   $('#r-acc').textContent = (acc*100).toFixed(1) + '%';
   $('#r-score').textContent = G.score.toLocaleString('en-US');
   $('#r-combo').textContent = G.maxCombo;
@@ -1399,7 +1407,7 @@ function finish(){
   const res = timingSummary(errs);
   $('#r-timing').textContent = res.text;
   const ap = $('#btn-apply'); ap.hidden = res.suggest == null;
-  if (res.suggest != null){ ap.textContent = 'Set offset to ' + (res.suggest > 0 ? '+' : '') + res.suggest + ' ms'; ap.onclick = () => { settings.offset = res.suggest; $('#offset').value = res.suggest; $('#offset').dispatchEvent(new Event('input')); ap.hidden = true; toast('Offset set to ' + res.suggest + ' ms'); }; }
+  if (res.suggest != null){ ap.textContent = 'Set offset to ' + (res.suggest > 0 ? '+' : '') + res.suggest + ' ms'; ap.onclick = () => { settings.offset = res.suggest; $('#offset').value = res.suggest; $('#offset').dispatchEvent(new Event('input')); ap.hidden = true; $('#btn-retry').focus(); toast('Offset set to ' + res.suggest + ' ms'); }; }
   try { G.src.stop(); } catch(e){}
   G = null;
   show('results'); updateSetlist(); updateStrip();
@@ -1529,6 +1537,7 @@ const STEER_L = ['KeyA','ArrowLeft'], STEER_R = ['KeyD','ArrowRight'], PULSE = [
 function setInput(kind){
   if (kind === lastInput) return;
   lastInput = kind; $('#io-last').textContent = kind;
+  document.body.classList.toggle('pad', kind === 'controller');
 }
 window.addEventListener('keydown', e => {
   if (screen === 'calib'){
@@ -1646,8 +1655,8 @@ function pollPad(){
           LANE_BTNS.forEach((bs, l) => { if (bs.some(down)) press(l, performance.now()); if (bs.some(up) && bs.every(i => !cur[i])) release(l); });
         }
       } else {
-        if (nav('up')) moveFocus(-1); if (nav('down')) moveFocus(1);
-        if (down(0) && document.activeElement && document.activeElement.click) document.activeElement.click();
+        if (nav('up') || nav('left')) moveFocus(-1); if (nav('down') || nav('right')) moveFocus(1);
+        if (down(0)) pressFocused('#btn-resume');
         if (down(1)) togglePause(false);
       }
     } else if (screen === 'title'){
@@ -1659,7 +1668,9 @@ function pollPad(){
       if (down(1)) closeSheet();
       if (down(3)) calibOpen();
     } else if (screen === 'results'){
-      if (down(0) || down(9)) $('#btn-retry').click();
+      if (nav('up') || nav('left')) moveFocus(-1); if (nav('down') || nav('right')) moveFocus(1);
+      if (down(0)) pressFocused('#btn-retry');
+      if (down(9)) $('#btn-retry').click();
       if (down(1)) toTitle();
     } else if (screen === 'calib'){
       if (C && !C.done){ if ([0,1,2,3,5,7].some(down)) calibTap(performance.now()); }
@@ -1679,10 +1690,21 @@ function pollPad(){
     setPadLabel(`Controller: ${name}${layout}${blocked ? ' · click or press a key once to allow sound' : ''}`, blocked);
   } else setPadLabel('Controller: press any button to connect');
 }
+// menu navigation for the pause overlay and the results screen: the visible buttons, in page order
+function menuItems(){
+  const root = screen === 'results' ? '#scr-results' : '#pause';
+  return [...document.querySelectorAll(root + ' [data-nav]')].filter(el => !el.hidden && el.offsetParent !== null);
+}
 function moveFocus(dir){
-  const items = [...document.querySelectorAll('#pause [data-nav]')];
+  const items = menuItems(); if (!items.length) return;
   const i = items.indexOf(document.activeElement);
-  const n = items[(i + dir + items.length) % items.length]; if (n) n.focus();
+  const n = i < 0 ? items[0] : items[(i + dir + items.length) % items.length];
+  n.focus({ preventScroll:false });
+}
+// A presses whichever menu button is highlighted; if focus wandered off the menu, the default button
+function pressFocused(fallback){
+  const items = menuItems(), a = document.activeElement;
+  (items.includes(a) ? a : $(fallback)).click();
 }
 
 // ---------- wiring ----------
@@ -1711,7 +1733,7 @@ function tick(now){
 }
 
 readCols(); buildSetlist(); bindSettings(); updateStrip(); loadManifest();
-window.__bbb = { syncCheck, version:'0.6', audioState:() => actx ? actx.state : 'none', calib:() => C, calibNow:() => C ? calibNow() : null };   // QA hook for automated sync tests
+window.__bbb = { syncCheck, version:'0.7', finish:() => { if (G && !G.over) finish(); }, audioState:() => actx ? actx.state : 'none', calib:() => C, calibNow:() => C ? calibNow() : null };   // QA hook for automated sync tests
 requestAnimationFrame(tick);
 })();
 </script>
