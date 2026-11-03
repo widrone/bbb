@@ -1,0 +1,161 @@
+[
+ {
+  "slot": 1,
+  "title": "From a Distance",
+  "audio": "audio/01-from-a-distance-v1.m4a",
+  "chart": "charts/01.json",
+  "duration": 107.137,
+  "grid": {
+   "on": false,
+   "bpm": 123.275
+  },
+  "gainDb": -4.94
+ },
+ {
+  "slot": 2,
+  "title": "Drone Theme (Album version)",
+  "audio": "audio/02-drone-theme-album-version-v1.m4a",
+  "chart": "charts/02.json",
+  "duration": 185.017,
+  "grid": {
+   "on": false,
+   "bpm": 133.321
+  },
+  "gainDb": -4.15
+ },
+ {
+  "slot": 3,
+  "title": "Sad Spring",
+  "audio": "audio/03-sad-spring-v1.m4a",
+  "chart": "charts/03.json",
+  "duration": 179.839,
+  "grid": {
+   "on": true,
+   "bpm": 105
+  },
+  "gainDb": -4.28
+ },
+ {
+  "slot": 4,
+  "title": "Svartdalen No.4",
+  "audio": "audio/04-svartdalen-no-4-v1.m4a",
+  "chart": "charts/04.json",
+  "duration": 163.143,
+  "grid": {
+   "on": true,
+   "bpm": 187.502
+  },
+  "gainDb": -2.64
+ },
+ {
+  "slot": 5,
+  "title": "Dust March",
+  "audio": "audio/05-dust-march-v1.m4a",
+  "chart": "charts/05.json",
+  "duration": 149.978,
+  "grid": {
+   "on": true,
+   "bpm": 105
+  },
+  "gainDb": -2.72
+ },
+ {
+  "slot": 6,
+  "title": "Svartdalen No.3",
+  "audio": "audio/06-svartdalen-no-3-v1.m4a",
+  "chart": "charts/06.json",
+  "duration": 185.133,
+  "grid": {
+   "on": false,
+   "bpm": 119.689
+  },
+  "gainDb": -0.98
+ },
+ {
+  "slot": 7,
+  "title": "Border",
+  "audio": "audio/07-border-v1.m4a",
+  "chart": "charts/07.json",
+  "duration": 146.913,
+  "grid": {
+   "on": true,
+   "bpm": 120
+  },
+  "gainDb": -1.55
+ },
+ {
+  "slot": 8,
+  "title": "Parade",
+  "audio": "audio/08-parade-v1.m4a",
+  "chart": "charts/08.json",
+  "duration": 159.637,
+  "grid": {
+   "on": true,
+   "bpm": 128
+  },
+  "gainDb": -3.35
+ },
+ {
+  "slot": 9,
+  "title": "Sticks and Stones and Drones",
+  "audio": "audio/09-sticks-and-stones-and-drones-v1.m4a",
+  "chart": "charts/09.json",
+  "duration": 224.537,
+  "grid": {
+   "on": false,
+   "bpm": 121.161
+  },
+  "gainDb": -3.43
+ },
+ {
+  "slot": 10,
+  "title": "Discerned Wavetables",
+  "audio": "audio/10-discerned-wavetables-v1.m4a",
+  "chart": "charts/10.json",
+  "duration": 128.964,
+  "grid": {
+   "on": false,
+   "bpm": 113.225
+  },
+  "gainDb": -3.67
+ },
+ {
+  "slot": 11,
+  "title": "Village and a BBD Heart",
+  "audio": "audio/11-village-and-a-bbd-heart-v1.m4a",
+  "chart": "charts/11.json",
+  "duration": 109.598,
+  "grid": {
+   "on": false,
+   "bpm": 119.944
+  },
+  "gainDb": -2.63
+ },
+ {
+  "slot": 12,
+  "title": "Cloud Dub",
+  "audio": "audio/12-cloud-dub-v1.m4a",
+  "chart": "charts/12.json",
+  "duration": 115.38,
+  "grid": {
+   "on": true,
+   "bpm": 142.68
+  },
+  "gainDb": -3.8
+ },
+ {
+  "slot": 13,
+  "title": "Shelling",
+  "audio": null
+ },
+ {
+  "slot": 14,
+  "title": "Dallas",
+  "audio": null
+ },
+ {
+  "slot": 15,
+  "title": "Stålbølger",
+  "audio": null
+ }
+]
