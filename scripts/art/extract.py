@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image, ImageOps
 from scipy import ndimage as nd
 SRC = '/home/claude/bbb/art/src/'
-inks = {'spikes':'PXL_20261103_215220638', 'islands':'PXL_20261103_215237826', 'bloom':'PXL_20261103_215245608', 'figures':'PXL_20261103_215309356'}
+inks = {'spikes':'PXL_20261103_215220638', 'islands':'PXL_20261103_215237826', 'bloom':'PXL_20261103_215245608', 'figures':'PXL_20261103_215309356', 'branches':'PXL_20261103_215251422'}
 for name, f in inks.items():
     im = ImageOps.exif_transpose(Image.open(SRC + f + '.jpg')).convert('RGB')
     im = im.resize((im.width//2, im.height//2), Image.LANCZOS)          # 1500 x 2000 keeps the halftone dots

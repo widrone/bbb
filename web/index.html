@@ -34,6 +34,14 @@ button,input{font:inherit;color:inherit}
 .brand h1{text-shadow:0 2px 28px rgba(16,19,23,.75)}
 @keyframes plate-drift{from{transform:scale(1)}to{transform:scale(1.06) translateX(-1.2%)}}
 @media (min-width:701px){.plate{top:72px;height:calc(100% - 72px)}}
+.top > .drifter{position:absolute;z-index:0;pointer-events:none;background:var(--chalk);opacity:.11;
+  -webkit-mask:url(art/drifter-0.webp) center/contain no-repeat;mask:url(art/drifter-0.webp) center/contain no-repeat;animation:drift-float 46s ease-in-out infinite alternate}
+.top > .drifter.d0{width:230px;height:150px;left:42%;top:4%}
+.top > .drifter.d1{width:190px;height:115px;left:68%;top:56%;background:var(--amber);opacity:.16;animation-duration:58s;-webkit-mask-image:url(art/drifter-1.webp);mask-image:url(art/drifter-1.webp)}
+.top > .drifter.d2{width:150px;height:90px;left:86%;top:10%;animation-duration:39s;animation-direction:alternate-reverse;-webkit-mask-image:url(art/drifter-2.webp);mask-image:url(art/drifter-2.webp)}
+@keyframes drift-float{from{transform:translate(0,0) rotate(-6deg)}to{transform:translate(-46px,20px) rotate(9deg)}}
+@media (max-width:700px){.top > .drifter.d0{left:50%}.top > .drifter.d2{display:none}}
+@media (prefers-reduced-motion:reduce){.top > .drifter{animation:none}}
 @media (max-width:700px){.plate{width:100%;opacity:.42}}
 .sleeve{position:relative;margin:-22px -20px 0;aspect-ratio:16/9;overflow:hidden;border-radius:6px 6px 0 0;background:var(--raise)}
 .sleeve img{display:block;width:100%;height:100%;object-fit:cover;transition:opacity .25s,transform 6s ease-out}
@@ -203,9 +211,10 @@ body.pad #scr-results .btn.primary:focus,body.pad #pause .btn.primary:focus,body
   <div class="wrap">
     <header class="top">
       <img class="plate" src="art/cover-plate.webp" alt="" aria-hidden="true">
+      <span class="drifter d0" aria-hidden="true"></span><span class="drifter d1" aria-hidden="true"></span><span class="drifter d2" aria-hidden="true"></span>
       <div class="brand">
         <h1>Beat<span>Bom</span>Basement</h1>
-        <p class="tag">Rhythm prototype, build 0.7. Music and artwork by <em>Snasen</em>.</p>
+        <p class="tag">Rhythm prototype, build 0.8. Music and artwork by <em>Snasen</em>.</p>
       </div>
       <div class="io mono" aria-live="polite">
         <span>Input: <b id="io-last">keyboard</b></span>
@@ -894,11 +903,11 @@ async function play(){
 }
 
 // ---------- artwork (Snasen's prints, processed into web/art/) ----------
-const ART = { print:['spikes','islands','bloom','figures'], img:{}, tint:new Map() };
+const ART = { print:['spikes','islands','bloom','figures','branches'], img:{}, tint:new Map() };
 function artImg(src){ if (!ART.img[src]){ const im = new Image(); im.decoding = 'async'; im.src = src; ART.img[src] = im; } return ART.img[src]; }
 const ready = im => !!(im && im.complete && im.naturalWidth > 0);
 const sleeveUrl = tr => 'art/sleeve-' + tr.no + '.webp';
-const printOf = tr => ART.print[(+tr.no) % 4];
+const printOf = tr => ART.print[(+tr.no) % 5];
 function tinted(im, color){
   const k = im.src + color; if (ART.tint.has(k)) return ART.tint.get(k);
   const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
@@ -916,6 +925,54 @@ function lampPrint(im){
 }
 const SPLATS = [0,1,2,3,4,5].map(i => artImg('art/splat-' + i + '.webp'));
 const HALFTONE = artImg('art/halftone.webp');
+
+// ---------- sprites: ink and paper fragments cut from the prints (art/sprites.webp + art/sprites.json) ----------
+// Roles: hit (falling targets), head (the player), spark (spatter), drift (slow background pieces).
+const SPR = { img:artImg('art/sprites.webp'), meta:null, roles:null, tint:new Map() };
+fetch('art/sprites.json').then(r => r.ok ? r.json() : null).then(j => { SPR.meta = j; }).catch(() => {});
+function spr(role){
+  if (!SPR.roles){
+    if (!SPR.meta || !ready(SPR.img)) return null;
+    SPR.roles = {};
+    for (const f of SPR.meta.frames){
+      const c = document.createElement('canvas'); c.width = f.w; c.height = f.h;
+      c.getContext('2d').drawImage(SPR.img, f.x, f.y, f.w, f.h, 0, 0, f.w, f.h);
+      (SPR.roles[f.role] = SPR.roles[f.role] || []).push({ c, w:f.w, h:f.h, src:f.src });
+    }
+  }
+  return SPR.roles[role] || null;
+}
+function sprTint(f, color){
+  const k = f.src + color; let c = SPR.tint.get(k); if (c) return c;
+  c = document.createElement('canvas'); c.width = f.w; c.height = f.h;
+  const g = c.getContext('2d'); g.drawImage(f.c, 0, 0); g.globalCompositeOperation = 'source-in'; g.fillStyle = color; g.fillRect(0, 0, f.w, f.h);
+  SPR.tint.set(k, c); return c;
+}
+const hashT = v => Math.imul(Math.round(v*1000) ^ 0x5bd1e995, 2654435761) >>> 0;   // stable per note, so a hit keeps its shape
+// draw a sprite centred at (cx, cy), w wide; its height follows the shape within [hMin, hMax]
+function drawSpr(f, color, cx, cy, w, hMin, hMax, rot, flip, alpha){
+  const img = sprTint(f, color), h = Math.max(hMin, Math.min(hMax, w*f.h/f.w));
+  c2d.save(); c2d.globalAlpha *= (alpha == null ? 1 : alpha); c2d.translate(cx, cy);
+  if (rot) c2d.rotate(rot); if (flip) c2d.scale(-1, 1);
+  c2d.drawImage(img, -w/2, -h/2, w, h); c2d.restore();
+}
+function spawnSparks(px, py, color, n, up){
+  if (reduceMotion || !G) return; const S = spr('spark'); if (!S) return;
+  for (let i = 0; i < n && G.parts.length < 180; i++){
+    const a = (up ? -Math.PI/2 : Math.PI/2) + (Math.random() - 0.5)*2.2, v = 140 + Math.random()*300;
+    G.parts.push({ f:S[(Math.random()*S.length) | 0], color, x:px, y:py, vx:Math.cos(a)*v, vy:Math.sin(a)*v,
+      rot:Math.random()*6.3, vr:(Math.random() - 0.5)*9, s:12 + Math.random()*24, life:0.55 + Math.random()*0.4, age:0 });
+  }
+}
+// hits queue up as bursts; each draw pass turns them into sparks at the right pixel position
+function drawParts(posOf, hitY){
+  for (const b of G.burst) spawnSparks(posOf(b.fx), hitY, b.r === 'miss' ? COL.rust : COL.j[b.r], b.n, b.r !== 'miss');
+  G.burst.length = 0;
+  const dt = G.fdt;
+  for (const p of G.parts){ p.age += dt; p.vy += 900*dt; p.x += p.vx*dt; p.y += p.vy*dt; p.rot += p.vr*dt; }
+  G.parts = G.parts.filter(p => p.age < p.life);
+  for (const p of G.parts){ const k = 1 - p.age/p.life; drawSpr(p.f, p.color, p.x, p.y, p.s*(0.6 + 0.4*k), 4, p.s*1.4, p.rot, false, 0.9*k); }
+}
 
 // ---------- shipped album audio ----------
 async function loadManifest(){
@@ -1021,7 +1078,8 @@ function startGame(tr, diff, chart, mode){
         held:[0,0,0,0], flash:[0,0,0,0], fx:[], judge:null, glow:0, last:performance.now(),
         px:0.5, keyL:0, keyR:0, padSteer:0, touchX:null, steerPtr:null, flashP:0, fx0:0, fw:0,
         fbuf:new Uint8Array(an.frequencyBinCount), tbuf:new Uint8Array(an.fftSize),
-        fl:[], missFx:0, milestone:0, paper:artImg('art/paper-' + printOf(tr) + '.webp'), paperC:null, sleeve:artImg(sleeveUrl(tr)), htPat:null };
+        fl:[], missFx:0, milestone:0, paper:artImg('art/paper-' + printOf(tr) + '.webp'), paperC:null, sleeve:artImg(sleeveUrl(tr)), htPat:null,
+        parts:[], burst:[], drift:null, ppx:null, tilt:0, fdt:0, pd:0 };
   lastRun = { track:tr, diff, chart, mode };
   show('play'); $('#pause').hidden = true;
   resize(); if (!noisePat) noisePat = makeNoise();
@@ -1055,7 +1113,14 @@ function evTime(e){ const ts = e && e.timeStamp; const now = performance.now(); 
 
 function applyHit(n, r, d, fx){
   n.j = r; G.counts[r]++;
-  if (r === 'miss'){ G.combo = 0; G.judge = { r, at:performance.now() }; G.missFx = performance.now(); return; }
+  fx = fx || (n.lane != null ? { lane:n.lane } : n.kind === 'band' ? { x:bandX(n, n.t1) } : { x:n.x });
+  if (r === 'miss'){
+    G.combo = 0; G.judge = { r, at:performance.now() }; G.missFx = performance.now();
+    n.missAt = performance.now(); n.spin = Math.random() < 0.5 ? -1 : 1; n.slide = (Math.random() - 0.5)*2;
+    if (!reduceMotion) G.burst.push({ fx, r, n:2 });
+    return;
+  }
+  if (!reduceMotion) G.burst.push({ fx, r, n:r === 'perfect' ? 9 : r === 'great' ? 6 : 4 });
   G.combo++; G.maxCombo = Math.max(G.maxCombo, G.combo);
   if (G.combo % 25 === 0) G.milestone = performance.now();
   if (fx && (r === 'perfect' || r === 'great') && !reduceMotion) G.fl.push(Object.assign({ at:performance.now(), r, rot:Math.random()*Math.PI*2, i:Math.floor(Math.random()*SPLATS.length) }, fx));
@@ -1106,6 +1171,15 @@ function togglePause(force){
   else { actx.resume(); G.last = performance.now(); if (document.activeElement) document.activeElement.blur(); }
 }
 
+// QA autoplay (window.__bbb.auto(true)): steers to each target and pulses on time. Not reachable from the UI.
+let AUTO = false;
+function autoSignal(t){
+  for (let i = G.vi; i < G.notes.length; i++){
+    const n = G.notes[i]; if (n.j) continue;
+    if (n.kind === 'band'){ if (t >= n.t - 0.3 && t <= n.t1){ G.px = bandX(n, Math.max(t, n.t)); return; } if (n.t > t) { G.px += (bandX(n, n.t) - G.px)*0.2; return; } continue; }
+    G.px += (n.x - G.px)*0.35; if (t >= n.t && Math.abs(G.px - n.x) < 0.02){ G.px = n.x; pulse(); } return;
+  }
+}
 function advanceVi(t){
   while (G.vi < G.notes.length){
     const n = G.notes[G.vi], end = n.kind === 'band' ? n.t1 : n.t;
@@ -1137,6 +1211,7 @@ function stepSignal(now){
     G.px = Math.max(0, Math.min(1, G.px + dir*HEAD_SPEED*dt));
   }
   G.flashP = Math.max(0, G.flashP - dt*6);
+  if (AUTO) autoSignal(t);
   const reach = HEAD_HALF + SIG[G.diff].half;
   for (let i = G.vi; i < G.notes.length; i++){
     const n = G.notes[i];
@@ -1159,7 +1234,8 @@ function stepSignal(now){
 function rr(x, y, w, h, r){ c2d.beginPath(); c2d.moveTo(x+r, y); c2d.arcTo(x+w, y, x+w, y+h, r); c2d.arcTo(x+w, y+h, x, y+h, r); c2d.arcTo(x, y+h, x, y, r); c2d.arcTo(x, y, x+w, y, r); c2d.closePath(); }
 
 function drawBackdrop(t){
-  const x = c2d, W = cw, H = ch;
+  const x = c2d, W = cw, H = ch, now = performance.now();
+  G.fdt = G.pd ? Math.min(0.05, (now - G.pd)/1000) : 0; G.pd = now;
   x.fillStyle = COL.concrete; x.fillRect(0, 0, W, H);
   if (noisePat){ x.fillStyle = noisePat; x.fillRect(0, 0, W, H); }
   // the bulb: brightness follows the low end of whatever is playing
@@ -1174,9 +1250,20 @@ function drawBackdrop(t){
     const pc = G.paperC, prog = Math.max(0, Math.min(1, t/G.track.buffer.duration));
     const sc = Math.max(W/pc.width, H/pc.height)*(1.08 + (reduceMotion ? 0 : 0.035*G.glow));
     const dw = pc.width*sc, dh = pc.height*sc;
-    x.globalAlpha = 0.07 + (reduceMotion ? 0.03 : 0.13*G.glow);
+    x.globalAlpha = 0.045 + (reduceMotion ? 0.02 : 0.08*G.glow);
     x.drawImage(pc, (W - dw)/2, (H - dh)/2 + (prog - 0.5)*H*0.05, dw, dh);
     x.globalAlpha = 1;
+  }
+  // large fragments drifting down the wall like ash, swelling a little with the bass
+  const D = spr('drift');
+  if (D && !reduceMotion){
+    if (!G.drift) G.drift = Array.from({ length:6 }, (_, i) => ({ f:D[(i*3 + (+G.track.no)) % D.length], x:(i + 0.5)/6 + (Math.random() - 0.5)*0.12,
+      y:Math.random()*1.3 - 0.15, s:0.26 + Math.random()*0.34, rot:Math.random()*6.3, vr:(Math.random() - 0.5)*0.1, vy:0.012 + Math.random()*0.018, tint:i % 3 === 0 ? COL.amber : COL.chalk }));
+    for (const d of G.drift){
+      d.y += d.vy*G.fdt; if (d.y > 1.2) d.y -= 1.45; d.rot += d.vr*G.fdt;
+      const w = Math.min(W, H)*d.s*(1 + 0.06*G.glow);
+      drawSpr(d.f, d.tint, d.x*W, d.y*H, w, 10, w*1.2, d.rot, false, 0.035 + 0.055*G.glow);
+    }
   }
 }
 function drawFlashes(px, hitY, now){
@@ -1224,11 +1311,19 @@ function drawLanes(t, now){
     const labels = lastInput === 'controller' ? ['◀','▼','▲','▶'] : ['D','F','J','K'];
     for (let l = 0; l < 4; l++) x.fillText(labels[l], x0 + l*lw + lw/2, hitY + 22);
   }
-  const horizon = t + (hitY + 30)/pps;
+  const horizon = t + (hitY + 30)/pps, HIT = spr('hit');
   for (let i = G.vi; i < G.notes.length; i++){
     const n = G.notes[i]; if (n.t > horizon) break;
     if (n.j && n.j !== 'miss') continue;
     const y = hitY - (n.t - t)*pps, nx = x0 + n.lane*lw + 8, nw = lw - 16;
+    if (HIT){
+      const f = HIT[hashT(n.t*3 + n.lane) % HIT.length], flip = (hashT(n.t + n.lane) & 1) === 1;
+      if (n.j === 'miss'){ const age = (now - (n.missAt || now))/1000; if (age > 0.7) continue;
+        drawSpr(f, COL.rust, nx + nw/2 + n.slide*age*50, y + age*age*380, nw, 12, 28, n.spin*age*3.2, flip, 0.65*(1 - age/0.7)); continue; }
+      drawSpr(f, COL.lane[n.lane], nx + nw/2, y, nw, 12, 28, 0, flip, 1);
+      x.fillStyle = rgba(COL.chalk, 0.9); x.fillRect(nx + 6, y - 1, Math.max(0, nw - 12), 2);
+      continue;
+    }
     rr(nx, y - 9, nw, 18, 5);
     if (n.j === 'miss'){ x.fillStyle = rgba(COL.rust, 0.35); x.fill(); continue; }
     x.fillStyle = COL.lane[n.lane]; x.fill();
@@ -1240,6 +1335,7 @@ function drawLanes(t, now){
     x.strokeStyle = rgba(COL.j[f.r], 0.8*(1 - p)); x.lineWidth = 3*(1 - p) + 1;
     rr(x0 + f.lane*lw + 6 - p*10, hitY - 12 - p*10, lw - 12 + p*20, 24 + p*20, 8); x.stroke();
   }
+  drawParts(f => x0 + f.lane*lw + lw/2, hitY);
   drawFlashes(f => x0 + f.lane*lw + lw/2, hitY, now);
   drawOverlay(t, now, hitY);
 }
@@ -1277,12 +1373,22 @@ function drawSignal(t, now){
     x.strokeStyle = rgba(COL.steel, on ? 0.95 : 0.55); x.lineWidth = 1.5; x.stroke();
   }
   // hits
-  const w = 2*half*fw;
+  const w = 2*half*fw, HIT = spr('hit');
   for (let i = G.vi; i < G.notes.length; i++){
     const n = G.notes[i]; if (n.t > horizon) break;
     if (n.kind !== 'tap' || (n.j && n.j !== 'miss')) continue;
     const y = hitY - (n.t - t)*pps, nx = X(n.x) - w/2;
     if (!n.j && n.t - t < 0.9){ const a = 1 - Math.max(0, n.t - t)/0.9; x.fillStyle = rgba(COL.amber, 0.12 + 0.35*a); x.fillRect(nx, hitY + 17, w, 3); }
+    if (HIT){
+      const f = HIT[hashT(n.t) % HIT.length], flip = (hashT(n.t + 0.37) & 1) === 1;
+      if (n.j === 'miss'){   // a missed hit tumbles off and fades
+        const age = (now - (n.missAt || now))/1000; if (age > 0.7) continue;
+        drawSpr(f, COL.rust, X(n.x) + n.slide*age*70, y + age*age*380, w*1.2, 12, 30, n.spin*age*3.2, flip, 0.65*(1 - age/0.7)); continue;
+      }
+      drawSpr(f, COL.amber, X(n.x), y, w*1.2, 12, 30, 0, flip, 1);
+      x.fillStyle = rgba(COL.chalk, 0.9); x.fillRect(nx + 6, y - 1, Math.max(0, w - 12), 2);   // the timing line: hit when it meets the signal
+      continue;
+    }
     rr(nx, y - 7, w, 14, 5);
     if (n.j === 'miss'){ x.fillStyle = rgba(COL.rust, 0.35); x.fill(); continue; }
     x.fillStyle = COL.amber; x.fill();
@@ -1304,10 +1410,19 @@ function drawSignal(t, now){
   }
   x.strokeStyle = gr; x.lineWidth = 2; x.stroke();
   // the head, and how far either side of it a hit still counts
-  const hh = HEAD_HALF*fw, reach = (HEAD_HALF + half)*fw;
-  rr(hx - hh, hitY - 13, hh*2, 26, 6);
-  x.fillStyle = rgba(COL.amber, 0.1 + 0.5*G.flashP); x.fill();
-  x.strokeStyle = COL.amber; x.lineWidth = 2; x.stroke();
+  const hh = HEAD_HALF*fw, reach = (HEAD_HALF + half)*fw, HEAD = spr('head');
+  const vel = G.px - (G.ppx == null ? G.px : G.ppx); G.ppx = G.px;
+  G.tilt = G.tilt*0.85 + Math.max(-0.35, Math.min(0.35, vel*40))*0.15;   // leans into the steering
+  if (HEAD){
+    const hw2 = hh*2*1.9;
+    x.fillStyle = rgba(COL.amber, 0.45); x.fillRect(hx - hh, hitY + 13, hh*2, 2);   // exact catch width
+    drawSpr(HEAD[0], COL.amber, hx, hitY - 3, hw2, 14, 46, G.tilt, false, 0.95);
+    if (G.flashP > 0) x2save(() => { x.globalCompositeOperation = 'lighter'; drawSpr(HEAD[0], COL.chalk, hx, hitY - 3, hw2*(1 + 0.15*G.flashP), 14, 54, G.tilt, false, 0.7*G.flashP); });
+  } else {
+    rr(hx - hh, hitY - 13, hh*2, 26, 6);
+    x.fillStyle = rgba(COL.amber, 0.1 + 0.5*G.flashP); x.fill();
+    x.strokeStyle = COL.amber; x.lineWidth = 2; x.stroke();
+  }
   x.strokeStyle = rgba(COL.amber, 0.35); x.lineWidth = 1;
   [hx - reach, hx + reach].filter(xx => xx >= fx0 && xx <= fx0 + fw).forEach(xx => { x.beginPath(); x.moveTo(Math.round(xx) + 0.5, hitY - 18); x.lineTo(Math.round(xx) + 0.5, hitY + 18); x.stroke(); });
   G.fx = G.fx.filter(f => now - f.at < 320);
@@ -1316,6 +1431,7 @@ function drawSignal(t, now){
     x.strokeStyle = rgba(f.r === 'pulse' ? COL.amber : COL.j[f.r], (f.r === 'pulse' ? 0.45 : 0.85)*(1 - p)); x.lineWidth = 3*(1 - p) + 1;
     rr(fxx - hh - p*14, hitY - 13 - p*12, hh*2 + p*28, 26 + p*24, 8); x.stroke();
   }
+  drawParts(f => X(f.x), hitY);
   drawFlashes(f => X(f.x), hitY, now);
   drawOverlay(t, now, hitY);
 }
@@ -1733,7 +1849,7 @@ function tick(now){
 }
 
 readCols(); buildSetlist(); bindSettings(); updateStrip(); loadManifest();
-window.__bbb = { syncCheck, version:'0.7', finish:() => { if (G && !G.over) finish(); }, audioState:() => actx ? actx.state : 'none', calib:() => C, calibNow:() => C ? calibNow() : null };   // QA hook for automated sync tests
+window.__bbb = { syncCheck, version:'0.8', auto:on => { AUTO = !!on; }, spritesReady:() => !!spr('hit'), parts:() => G ? G.parts.length : -1, finish:() => { if (G && !G.over) finish(); }, audioState:() => actx ? actx.state : 'none', calib:() => C, calibNow:() => C ? calibNow() : null };   // QA hook for automated sync tests
 requestAnimationFrame(tick);
 })();
 </script>
