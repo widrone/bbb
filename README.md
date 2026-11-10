@@ -1,88 +1,143 @@
-# BeatBomBasement
+# Slekta Aure-Wiborg
 
-A rhythm game played to *Music for Drone* by Snasen. Steer a signal line under falling hits and pulse in time with the music, through all 15 tracks of the album.
+Et interaktivt slektstre med kilder. Hele treet er én HTML-fil, `index.html`, som ikke trenger noe annet for å virke.
 
-**Play it:** https://bbb.widr.one
+Treet tar utgangspunkt i barna i slekta Aure-Wiborg.
+- **Farssiden:** Wiborg og Aanonsen.
+- **Morssiden:** Aure, Olsen og Knutsen.
 
-Free to play in the browser on Windows, Mac and phones. No accounts, no cookies, no tracking.
+## Hvordan vise det
 
-## How to play
+- **Lokalt:** åpne `index.html` i en nettleser.
+- **GitHub Pages:**
+  1. Last opp mappen til et repo.
+  2. Gå til Settings → Pages.
+  3. Velg grenen og rotmappen.
 
-**Signal mode** (default). An oscilloscope trace of the track runs along the bottom of the screen, and you steer its head left and right. Hits fall where their sound sits: bass on the left, highs on the right. Be under a hit and pulse as it lands. When a drone sustains, keep the head inside the band until it ends.
+## Hva treet viser
 
-**Lanes mode.** A classic four-lane highway, for players who prefer it.
+- **462 personer i 16 generasjoner.** Generasjon 6 (tipp-tipp-tippoldeforeldrene, nr. 64–127) er komplett: 64 av 64 er kjent. Det eldste leddet er kjøpmann Ludvig Munthe i Lübeck, født ca. 1520.
+- **Status for hver person:** dokumentert, oppgitt av familien eller ikke bekreftet.
+- **Kilder** med lenker til Digitalarkivet, Nasjonalbiblioteket, FamilySearch og Riksarkivet.
+- **Detaljer om hver person:** søsken, barn og en kort livshistorie. Der det finnes mer, ligger vurderingene bak koblingene i en egen boks, «Forskningsnotater», som kan foldes ut.
+- **Forskningsplan:** «Neste steg» nederst på siden viser hva som gjenstår, med de nærmeste leddene først.
+- **Stiplet linje** betyr at foreldrekoblingen er sannsynlig, men ikke bevist. Den kan bygge på bygdebøker, navneskikk eller folketellinger, eller på en dåp der sted eller år ikke stemmer helt. Notatet sier alltid hvorfor koblingen er stiplet.
+- **Slekta i historien:** en tidslinje som kobler personer i treet til historiske hendelser. Eksempler er hyldingen av Christian 4. i 1591, Storofsen i 1789, utvandringen til Amerika og andre verdenskrig.
+- **Etterkommere:** for en del av forfedrene vises også barn og barnebarn, ikke bare den linjen som fører ned til barna.
 
-| | Keyboard | Controller | Touch |
-|---|---|---|---|
-| Steer (Signal) | A / D or ← / → | Left stick or D-pad | Drag |
-| Pulse (Signal) | Space, J, K or ↑ | A, B, X, Y, RB or RT | Tap |
-| Lanes | D F J K or arrows | D-pad, or X A Y B | Tap the columns |
-| Pause | Esc | Start | Pause button |
-| Switch mode (menu) | — | LB / RB | Mode buttons |
-| Calibrate offset (menu) | — | Y | Bottom of the track list |
+## Fire visninger
 
-Each track has Easy, Normal and Hard charts. Timing windows are ±45 ms (Perfect), ±90 ms (Great) and ±135 ms (Good).
+Velg visning med knappene øverst: **Tavle | Vifte | Etterkommere | Nummerert**. Siden husker valget.
 
-### Before you play
+- **Tavle:** anetavle som leses fra venstre mot høyre. På mobil åpner den i fokusvisning (se under).
+- **Vifte:** viftediagram med barna i sentrum og forfedrene i ringer utover, med farssiden til venstre og morssiden til høyre.
+  - Velg 3–10 generasjoner.
+  - Velg farge etter kildestatus, fars- og morsside eller fødselsår.
+  - Trykk på en person for detaljer. Trykk en gang til for å sette henne i sentrum.
+  - Zoom med − og +.
+  - ↺ betyr at samme person forekommer flere steder (anetap).
+- **Etterkommere:** én stamfar eller stammor til venstre, med barn og barnebarn mot høyre.
+  - Visningen starter hos Ola Nilsson Wedberg (Ole Nilsen Viborg, 1832–1888) fra Skåne, stamfar for Wiborg-slekta. Herfra følger du alle grenene ned mot i dag: Nils Weberg i Lund, Petter Viborg i Kristiania og hans sønner Einar (Wisconsin), Sverre og Torbjørn.
+  - Kort med blå strek er barnas aner.
+  - Hvite kort er barn og barnebarn fra etterkommerlistene.
+  - «↑ Far» og «↑ Mor» går et ledd opp.
+- **Nummerert:** klassisk anetavle med Kekulé-nummer. Barna er nr. 1, faren til nr. n er 2n og moren 2n + 1.
+  - Hver generasjon viser hvor mange plasser som er kjent.
+  - Numrene er lenker, og «Vis tomme plasser» viser hullene.
+  - «Skriv ut» skriver bare ut anetavla.
 
-- **Calibrate your audio offset.** Use "Calibrate audio offset" at the bottom of the track list: tap along to 20 clicks, and the game suggests an offset for your speakers or headphones. Bluetooth headphones usually need +150 ms or more.
-- **Controller players:** browsers only allow sound after one click or key press on the page. Do that once, and the controller works for everything after it.
-- Controllers need the `https://` address. Chrome and Edge are tested; Safari and Firefox should work but haven't been checked yet.
+Alle visningene kan åpnes med lenke:
 
-## Credits
+| Lenke | Åpner |
+|---|---|
+| `index.html#vifte` | vifta |
+| `index.html#vifte:georgA` | vifta med Georg Aure i sentrum |
+| `index.html#etterk` | etterkommertavla med Ola Nilsson Wedberg som rot |
+| `index.html#etterk:oleJA` | etterkommertavla med Ole Johansen Aure som rot |
+| `index.html#ane:georgA` | den nummererte anetavla med Georg Aure som nr. 1 |
 
-- **Music:** Snasen, *Music for Drone* (Sellout! Music, 2015). The score for Tonje Hessen Schei's documentary *Drone* (2014).
-- **Artwork:** Snasen. The cover and five halftone ink prints, photographed and cut into the game's sleeves, backdrops and sprites.
-- **Game:** design, code and charts built with Claude (Anthropic).
+## Bruk
 
-## Licence
+### På mobil: fokusvisning
+- **Én person om gangen.** Siden viser personen sammen med foreldre og besteforeldre, tilpasset skjermbredden.
+- **Gå bakover** ved å trykke på en forelder eller besteforelder. Kortene i ytterste kolonne viser hvor mange forfedre som finnes videre.
+- **Stien øverst** (Barna › Mor › Morfar › …) viser hvor du er. Trykk på et ledd for å gå tilbake. Telefonens tilbakeknapp fungerer også.
+- **Detaljene** står rett under kortene. Kildene ligger bak «Vis kilder».
+- **«Hele treet»** viser den store tavlen med alle generasjoner. Valget huskes.
 
-The code in this repository is licensed under the GPL-3.0 (see `LICENSE`).
+### På stor skjerm
+- **Søk:** skriv et navn eller sted. Treffet åpnes i treet og vises i detaljpanelet.
+- **Velg utsnitt:** Alle, Farssiden eller Morssiden, og hvor mange generasjoner som vises.
+- **+ og −** på hvert kort viser eller skjuler forfedrene i den grenen.
 
-**The music and artwork are not covered by that licence.** The audio in `web/audio/` and the images in `web/art/` are © Snasen / Sellout! Music. They are included with permission so the game can be played, and may not be reused, redistributed or remixed outside this game without the rights holders' permission.
+### Lenke til en person
+Legg til `#` og personens nøkkel i adressen, for eksempel `index.html#georgA` for Georg Johannes Aure. Lenken åpnes i den visningen du sist brukte.
 
-## Repository layout
+## Personvern
 
-```
-web/                 the site, published as-is to bbb.widr.one
-  index.html         the whole game (HTML, CSS and JavaScript in one file)
-  tracks.json        setlist: title, audio file, chart, length, tempo, loudness gain per track
-  audio/             the album, AAC .m4a, one file per track (NN-title-vN.m4a)
-  charts/            one chart file per track (NN.json): Signal + Lanes × Easy/Normal/Hard
-  art/               sleeves, backdrops, cover plate and the sprite sheet (sprites.webp + sprites.json)
-scripts/
-  charts/            chart pipeline: analyse audio, detect the beat grid, bake and check charts
-  art/               art pipeline: lift ink from the photos, make sleeves and backdrops, cut and pack sprites
-.github/workflows/   deploy.yml: publishes web/ to GitHub Pages on every push to main
-```
+- **De tre nærmeste leddene** er med uten navn og datoer, bare som rolle: «Barna», «Far», «Mor», «Farfar», «Farmor», «Morfar» og «Mormor». Det gjelder både levende og nylig avdøde.
+- **Fra oldeforeldrene og bakover** vises bare døde personer med navn.
+- **Etterkommerlistene og etterkommertavla** viser ikke barn eller barnebarn født 1920 eller senere uten kjent dødsdato. De står bare som et antall.
+- Etterkommere som trolig lever, er ikke navngitt i notatene.
+- Slektshistoriene (kapitlene om enkeltpersoner) er private dokumenter og er ikke med i den offentlige versjonen.
+- Vifta, etterkommertavla og den nummererte anetavla bruker de samme anonymiserte dataene som tavla.
 
-## Updating the site
+## Kildekritikk
 
-Every push to `main` deploys automatically: open the **Actions** tab to watch it. The deploy step refuses lossless audio (WAV/AIFF/FLAC) in `web/` and any file over 50 MB.
+- Ingen kobling lages bare fordi navnene ligner.
+- Koblinger som bygger på bygdebøker eller sammenstillinger uten kilder, er stiplet til de er kontrollert mot kirkebok eller folketelling.
+- Treet har vært gjennom en egen kvalitetssikring fra besteforeldrene og sju ledd bakover. Hver foreldrekobling er kontrollert mot en kilde som navngir forelderen.
+- Feil som ble funnet, er rettet og omtalt i notatene. Ett eksempel er Kirsti Andersdatter i Stange: hun som sto i treet døde som spedbarn, og riktig mor er nå Mari Olsdatter.
 
-To publish a new build: unzip it and drag its `web/` (and `scripts/` if included) folder into the repo root on GitHub. GitHub merges the files and overwrites any that changed.
+## Nytt i versjon 10.11.2026
 
-When an audio file changes, give it a new version in its name (`-v2.m4a`) and update `tracks.json`, so returning players don't get a cached old copy.
+- **Livshistorie og forskningsnotater er skilt.** 99 personer har fått notatet delt i to: en livshistorie øverst, og forskningsnotatene i en boks som kan foldes ut. Interne arbeidsmerker er fjernet fra teksten.
+- **«Neste steg» er skrevet på nytt.** Planen er kortere og har fire deler: nære ledd, åpne gåter, videre bakover, og det arkivene ikke kan gi. Den gamle lista ligger under «Eldre arbeidsnotater».
+- **Datoer og stedsnavn er gjort like.** Datofeltet bruker «f.» og «d.» overalt. Stedsnavn står slik de het da: Christiania til 1877, Kristiania til 1924 og Fredrikshald til 1928. Forklaringen på farger har fått en linje om dette.
+- **Feil rettet etter en full gjennomgang av treet:**
+  - To ulike kvinner ved navn Olou var slått sammen til én. Olou Halvorsdatter (Visur i Borge) og Olou Helgesdatter (Tune) har nå hver sin oppføring.
+  - To vielseskilder hadde samme nøkkel, slik at to familier viste feil vielse.
+- **Rettede livshistorier,** der nyere funn sa imot den gamle teksten. Blant dem: Laura Kristine Nilsen er født i 1858 (ikke 1859), og Gustav Staffs trolige foreldre står nå i livshistorien.
+- **Personvern:** en dåpsdato fra 1925 for en person som kan være i live, er tatt ut.
 
-## Running it locally
+## Nytt i versjon 30.10.2026
 
-The game loads its tracks, charts and art with `fetch`, so it needs a local web server rather than opening `index.html` directly:
+- **Generasjon 6 er komplett (64 av 64).**
+  - Augusta Hansdatters foreldre er funnet i husförhörslängden for Steneby i Dalsland: Hans Olsson og Anna Lisa Andersdotter.
+  - Hagbart Knudsens foreldre er funnet i Ullensaker (stiplet).
+  - Gustav Fredrik Stav er sannsynligvis sønn av Anders Fredrik Staf og Jakobina Sörensdotter i Herrestad ved Uddevalla. Koblingen er stiplet.
+- **Etterkommere etter Ola Nilsson Wedberg**, bygd ut ledd for ledd:
+  - Barneflokken er sjekket mot husförhörslängdene for Bromma.
+  - Anna Wedberg (f. 1879) er fulgt som fosterbarn i Öja og senere i Lund.
+  - Petter Viborgs dødsdato er bekreftet: 9.3.1902.
+  - Einar Wiborg er fulgt fra Ellis Island i 1908 til Milwaukee, der han døde i 1975.
+  - Sverres barn og Sigurds død er funnet.
+- **Torbjørns barndom:** han var pleiesønn hos landhandler Arne P. Strøm på Sundby i Sør-Odal etter at begge foreldrene var døde.
+- **Etterkommertavla** starter nå hos Ola Nilsson Wedberg.
 
-```sh
-cd web
-python3 -m http.server 8000
-```
+## Nytt i versjon 29.10.2026
 
-Then open http://localhost:8000. Controllers work on `localhost` as well as on https.
+- **Tre nye visninger:** viftediagram, etterkommertavle og nummerert anetavle (Kekulé), med en visningsvelger øverst.
+- Personene og kildene er de samme som i versjonen fra 28.10.2026.
 
-## How the charts are made
+## Nytt i versjon 28.10.2026 (sammenlignet med 20.10.2026)
 
-Charts are generated from the audio, then meant to be hand-tuned:
+- **Fra 250 til 454 personer, og fra 14 til 16 generasjoner.**
+- **Nye linjer bakover:**
+  - Romedal (Gaustad, Arneberg, Busvol) og Nes på Hedmarken (Skjelve, med lensmann Frants Skjelve som var med på hyldingen i 1591).
+  - Elverum (Skjefstad og Sætersmoen), Hurdal (Bratlien, Lundberg og Simarud), Gran og Jevnaker.
+  - Stangvik og Todalen (Bruset og Grønnes), Tune og Varteig, Eidskog (Billa og Finsrud), Land (Gjevle og Stensrud) og Skåne.
+  - Munthe-slekta, gjennom Ingeborg Friis og biskop Ludvig Munthe.
+- **Kvalitetssikring:** mange stiplete linjer er bekreftet med dåp, konfirmasjon eller folketellingen 1801, og noen feil er rettet.
+- **Ny tidslinje: «Slekta i historien».**
+- **Etterkommere** av forfedrene.
 
-1. Each track is analysed for onsets (where sounds start), their pitch, and its loudness.
-2. Tracks with a steady tempo get a beat grid (03, 05, 07, 08 lock to exact studio tempos), and their hits snap to it. Free-time tracks follow the audio directly.
-3. Each difficulty keeps only hits above a strength threshold, so quiet sustained passages become bands instead of filling up with weak hits.
-4. Every chart is checked by a bot that steers at full speed: every hit must be reachable, and hits must keep a minimum gap.
-5. Each chart stores a short fingerprint of its audio. On load the game checks the browser decoded the file with the same timing and corrects it if not.
+Versjon: 10.11.2026 (tilsvarer versjon 160 av arbeidstreet).
 
-Loudness is evened out in the game: each track plays at about −15 LUFS, with true peaks kept under −1 dBTP.
+## Aure-navnet
+
+Aure er et gammelt gårdsnavn fra Skiaker i Østsinni sokn i Nordre Land: Aure søndre, også kalt Aure-Ødegården (gnr. 115).
+- Ifølge Rygh, *Norske Gaardnavne*, lå gården tidligere under nabogården Berg.
+- Navnet kommer trolig av elva Aura, som er avledet av norrønt *aurr*, «grus».
+- Husmann Johannes Knudsen Aure var sønn av Knud Knudsen og Berte Johansdatter på Bergs eie, som senere bodde på Gjevle.
+- Sønnen hans, Ole Johansen Aure, tok navnet med til Kristiania, og der ble det fast slektsnavn.
